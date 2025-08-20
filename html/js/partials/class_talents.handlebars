@@ -1,19 +1,44 @@
 {{! For a class, shows the talent types that it can learn. }}
 {{! Note the duplicated format talent_classes.handlebars. }}
-{{#if talents_types}}
+{{#if talents_types_sorted}}
     <div class="col-md-4">
         <h4>{{title}}</h4>
-        <ul>
-        {{#eachProperty talents_types}}
-            {{#if value.[2]}}
-                <li>
-                    <a href="#talents/{{toUnsafeHtmlId key}}{{currentQuery}}">{{toTitleCase value.[2]}}</a>
-                    {{> talent_mastery value}}
-                    <br>
-                    <div data-talent-type="{{toHtmlId key}}" class="class-talents-detail {{#unless value.[0]}}locked{{/unless}}"></div>
-                </li>
-            {{/if}}
-        {{/eachProperty}}
-        </ul>
+        <table class="talent-trees-table">
+            <tbody>
+                {{#each talents_types_sorted}}
+                    {{#if value.[2]}}
+                        <tr class="talent-tree-row">
+                            <td class="talent-tree-cell">
+                                <div class="talent-tree-header">
+                                    <a href="#" class="talent-tree-link" data-talent-type="{{toUnsafeHtmlId key}}" data-talent-display-name="{{toTitleCase value.[2]}}">{{toTitleCase value.[2]}}</a> {{> talent_mastery value}}
+                                </div>
+                                <div data-talent-type="{{toHtmlId key}}" class="class-talents-detail {{#unless value.[0]}}locked{{/unless}}"></div>
+                            </td>
+                        </tr>
+                    {{/if}}
+                {{/each}}
+            </tbody>
+        </table>
+    </div>
+{{else if talents_types}}
+    {{! Fallback to original behavior if sorted version not available }}
+    <div class="col-md-4">
+        <h4>{{title}}</h4>
+        <table class="talent-trees-table">
+            <tbody>
+                {{#eachProperty talents_types}}
+                    {{#if value.[2]}}
+                        <tr class="talent-tree-row">
+                            <td class="talent-tree-cell">
+                                <div class="talent-tree-header">
+                                    <a href="#" class="talent-tree-link" data-talent-type="{{toUnsafeHtmlId key}}" data-talent-display-name="{{toTitleCase value.[2]}}">{{toTitleCase value.[2]}}</a> {{> talent_mastery value}}
+                                </div>
+                                <div data-talent-type="{{toHtmlId key}}" class="class-talents-detail {{#unless value.[0]}}locked{{/unless}}"></div>
+                            </td>
+                        </tr>
+                    {{/if}}
+                {{/eachProperty}}
+            </tbody>
+        </table>
     </div>
 {{/if}}

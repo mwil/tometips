@@ -1,8 +1,13 @@
-<ul>
-{{#each talents}}
-    {{!-- id links not yet working properly and may not even be the best UI
-    <li><a href="#talents/{{../type}}/{{toHtmlId id}}{{currentQuery}}" title="{{name}}">{{> talent_img_small }}</a></li>
-    --}}
-    <li><a href="#talents/{{../type}}{{currentQuery}}" title="{{name}}">{{> talent_img_small }}</a></li>
-{{/each}}
-</ul>
+<table class="talent-icons-table">
+    <tbody>
+        <tr class="talent-row">
+            {{#each talents}}
+            <td class="talent-icon-cell">
+                <a href="#" class="individual-talent-link" data-talent-id="{{id}}" data-talent-type="{{../type}}" data-talent-name="{{name}}" title="{{name}}">
+                    {{> talent_img }}
+                </a>
+            </td>
+            {{/each}}
+        </tr>
+    </tbody>
+</table>

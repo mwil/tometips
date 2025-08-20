@@ -5,7 +5,7 @@ set -e
 
 cd $(dirname $0)/..
 
-mkdir -p html/img/talents/{64,48,32}
+mkdir -p html/img/talents/{96,64,48,32}
 
 for gfx in t-engine4/game/modules/tome/data/gfx dlc/*/overload/data/gfx; do
     for img in $gfx/talents/*.png; do
@@ -20,7 +20,7 @@ done
 tmpimg=tmp.png
 trap "rm -f $tmpimg" EXIT
 
-for size in 32 48; do
+for size in 32 48 96; do
     for img in html/img/talents/64/*.png; do
         newimg=${img/64/$size}
         if [ $img -nt $newimg ]; then

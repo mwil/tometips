@@ -4,7 +4,7 @@ LUA := luajit
 
 TOME_GIT_URL := http://git.net-core.org/tome/t-engine4.git
 
-RELEASE_VERSIONS := 1.4.9 1.5.9 1.6.0
+RELEASE_VERSIONS := 1.7.6
 VERSIONS := $(RELEASE_VERSIONS)
 
 # GitHub Pages output
@@ -20,6 +20,9 @@ html/js/partials.js: html/js/partials/*.handlebars
 
 html/js/templates.js: html/js/templates/*.handlebars
 	handlebars --min html/js/templates > $@
+
+# Note: Handlebars partial registrations are handled by html/js/partials-registration.js
+# This persistent file ensures partials are available without manual re-registration after compilation
 
 # "make clean" support.  To avoid creating spurious changes, this does not
 # delete images.

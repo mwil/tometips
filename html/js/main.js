@@ -479,8 +479,8 @@ var versions = (function() {
     }
 
     var versions = {
-        DEFAULT: '1.6.0',
-        ALL: [ '1.4.9', '1.5.9', '1.6.0' ],
+        DEFAULT: '1.7.6',
+        ALL: [ '1.7.6' ],
         DISPLAY: { 'master': 'next' },
 
         name: function(ver) {
@@ -805,9 +805,13 @@ function initializeRoutes() {
                 showCollapsed(this_nav);
 
                 $("#content").html(listClasses(tome, cls));
-                scrollToId();
-
+                
                 fillClassTalents(tome, cls);
+                
+                // Delay scrollToId to allow table content to render
+                setTimeout(function() {
+                    scrollToId();
+                }, 200);
 
                 updateFinished();
             });
@@ -907,6 +911,138 @@ function loadDataIfNeeded(data_file, success) {
         success(tome_part[last_part]);
     }
 }
+
+// Image size settings management
+var imgSizeSettings = {
+    size: 32, // default size
+    
+    set: function(size) {
+        this.size = size;
+        localStorage.setItem('tome-tips-img-size', size);
+        this.updateActiveMenuItem(size);
+    },
+    
+    get: function() {
+        var saved = localStorage.getItem('tome-tips-img-size');
+        return saved ? parseInt(saved) : this.size;
+    },
+    
+    updateActiveMenuItem: function(size) {
+        $('.option-img-size').removeClass('active');
+        $('.option-img-size[data-img-size="' + size + '"]').addClass('active');
+    },
+    
+    applyIconSizeClasses: function(size) {
+        // Remove old size classes and apply new one
+        var $containers = $('.class-talents-detail');
+        $containers
+            .removeClass('icon-size-32 icon-size-48 icon-size-64')
+            .addClass('icon-size-' + size);
+        
+        // Update talent tree spacing based on icon size to prevent overlap
+        var marginBottom;
+        switch(size) {
+            case 32:
+                marginBottom = '15px';
+                break;
+            case 48:
+                marginBottom = '25px';
+                break;
+            case 64:
+                marginBottom = '35px';
+                break;
+            default:
+                marginBottom = '15px';
+        }
+        
+        // Apply spacing to both old list items and new table rows
+        var $listItems = $('.col-md-4 > ul > li, .class-detail-container .col-md-4 > ul > li'); // Legacy list support
+        var $treeTableRows = $('.talent-tree-row'); // New outer table rows for talent trees
+        var $iconTableRows = $('.talent-row'); // Inner table rows for individual talent icons
+        
+        // Compact spacing values for different icon sizes
+        var compactMargin;
+        switch(size) {
+            case 32:
+                compactMargin = '8px';
+                break;
+            case 48:
+                compactMargin = '12px';
+                break;
+            case 64:
+                compactMargin = '16px';
+                break;
+            default:
+                compactMargin = '8px';
+        }
+        
+        // Apply spacing to legacy list items (if any remain)
+        $listItems.css({
+            'margin-bottom': compactMargin,
+            'padding-bottom': compactMargin,
+            'min-height': 'auto'
+        });
+        $listItems.removeClass('spacing-32 spacing-48 spacing-64')
+                 .addClass('spacing-' + size);
+        
+        // Apply spacing classes to the new table structure
+        $treeTableRows.removeClass('spacing-32 spacing-48 spacing-64')
+                      .addClass('spacing-' + size);
+        
+    }
+};
+
+// Handlebars helper for accessing settings
+Handlebars.registerHelper('opt', function(option) {
+    if (option === 'imgSize') {
+        return imgSizeSettings.get();
+    }
+    return '';
+});
+
+function configureImgSize() {
+    // Load saved setting
+    imgSizeSettings.size = imgSizeSettings.get();
+    imgSizeSettings.updateActiveMenuItem(imgSizeSettings.size);
+    imgSizeSettings.applyIconSizeClasses(imgSizeSettings.size);
+    
+    // Handle dropdown clicks
+    $(document).on('click', '.option-img-size', function(e) {
+        e.preventDefault();
+        var newSize = parseInt($(this).data('img-size'));
+        imgSizeSettings.set(newSize);
+        
+        // Apply new size classes for proper spacing
+        imgSizeSettings.applyIconSizeClasses(newSize);
+        
+        // Trigger re-render of talent icons that are currently visible
+        $('.class-talents-detail').each(function() {
+            var $container = $(this);
+            if ($container.children().length > 0) {
+                // Re-render this talent tree's icons
+                var talentType = $container.data('talent-type');
+                $container.find('img').each(function() {
+                    var $img = $(this);
+                    var currentSrc = $img.attr('src');
+                    // Update image src to use new size
+                    var newSrc = currentSrc.replace(/\/\d+\//, '/' + newSize + '/');
+                    $img.attr('src', newSrc);
+                    $img.attr('width', newSize);
+                    $img.attr('height', newSize);
+                });
+            }
+        });
+    });
+}
+
+// Global function for testing from console
+window.testSpacing = function(size) {
+    size = size || 64;
+    if (typeof imgSizeSettings !== 'undefined') {
+        imgSizeSettings.set(size);
+        imgSizeSettings.applyIconSizeClasses(size);
+    }
+};
 
 window.onerror = function(msg, url, line) {
     $("html").removeClass("wait");

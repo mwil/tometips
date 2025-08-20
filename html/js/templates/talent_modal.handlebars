@@ -1,0 +1,34 @@
+{{! Modal for displaying individual talent details }}
+<div class="modal fade" id="talent-modal" tabindex="-1" role="dialog" aria-labelledby="talent-modal-title">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+        <h4 class="modal-title" id="talent-modal-title">
+          {{> talent_img}}
+          {{name}}
+        </h4>
+      </div>
+      <div class="modal-body">
+        {{> talent_details}}
+        {{#if talents}}
+          <h5>Individual Talents</h5>
+          <div class="talent-grid">
+            {{#each talents}}
+              <div class="individual-talent" data-talent-id="{{id}}">
+                {{> talent_img}}
+                <div class="talent-name">{{name}}</div>
+              </div>
+            {{/each}}
+          </div>
+        {{/if}}
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <a href="#talents/{{toUnsafeHtmlId type}}{{currentQuery}}" class="btn btn-primary">View Full Talent Tree</a>
+      </div>
+    </div>
+  </div>
+</div>

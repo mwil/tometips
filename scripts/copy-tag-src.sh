@@ -20,10 +20,10 @@ trap "(cd t-engine4 && git checkout master)" EXIT SIGINT SIGTERM
 rm -rf $tag
 mkdir $tag
 while read src dst; do
-    # Canonicalize destination directory
-    destdir=$(readlink -f $tag/$dst)
+    # Canonicalize destination directory (macOS compatible)
+    destdir=$(cd $tag && mkdir -p $dst && cd $dst && pwd)
 
     mkdir -p $destdir
-	(cd t-engine4/$src && cp -v --parents $(find . -name '*.lua') $destdir)
+	(cd t-engine4/$src && find . -name '*.lua' | cpio -pdm $destdir)
 done < <(list_dirs)
 

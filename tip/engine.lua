@@ -1,6 +1,53 @@
 tip = tip or {}
 tip.version = arg[1]
 package.path = package.path..(';%s/?.lua;./%s/thirdparty/?.lua'):format(tip.version, tip.version)
+
+-- Stub for internationalization function
+_t = function(text) return text end
+
+-- Stub for text formatting function
+tformat = function(text, ...) 
+    -- Simple string formatting replacement
+    local args = {...}
+    if type(args[1]) == "table" then
+        args = args[1]
+    end
+    local result = text
+    for k, v in pairs(args) do
+        result = result:gsub("#"..k.."#", tostring(v))
+        result = result:gsub("@"..k.."@", tostring(v))
+    end
+    return result
+end
+
+-- Add tformat as a string method
+local string_mt = getmetatable("")
+string_mt.__index.tformat = function(self, ...)
+    return tformat(self, ...)
+end
+
+-- Stub for campaign checking function
+for_campaign = function(campaign_name)
+    -- For spoiler generation, we assume all content is valid
+    return true
+end
+
+-- Stub socket modules since we don't need networking for spoiler generation
+package.preload['socket.http'] = function()
+    return {
+        request = function() return nil, "socket disabled in spoiler mode" end
+    }
+end
+package.preload['socket.url'] = function()
+    return {
+        parse = function(url) return {} end,
+        build = function(t) return "" end
+    }
+end
+package.preload['socketcore'] = function()
+    return {}
+end
+
 require 'versions'
 
 tip.outputDir = function()
@@ -49,6 +96,9 @@ fs = {
 rng = {
     percent = function(chance) tip.util.logError('bad function rng.percent called') return false end,
     avg = function(min, max, size) tip.util.logError('bad function rng.avg called') return (min + max) / 2 end,
+    float = function(min, max) return (min + max) / 2 end, -- Return middle value for reproducible results
+    range = function(min, max) return math.floor((min + max) / 2) end,
+    dice = function(nb, sides) return math.floor(nb * sides / 2) end,
 }
 
 game = {
@@ -67,6 +117,12 @@ game = {
         hasMember = function(actor) return false end,
         known_tinkers = {},
     },
+    
+    -- Add missing methods needed by DLC hooks
+    isCampaign = function(self, campaign_name) 
+        -- For spoiler generation, return false since we're not running a specific campaign
+        return false 
+    end,
 }
 
 profile = {
@@ -81,8 +137,12 @@ profile = {
 -- Load init.lua and get version number.  Based on Module.lua.
 local mod = { config={ settings={} } }
 local mod_def = loadfile(tip.version .. '/mod/init.lua')
-setfenv(mod_def, mod)
-mod_def()
+if mod_def then
+    setfenv(mod_def, mod)
+    mod_def()
+else
+    error("Could not load " .. tip.version .. '/mod/init.lua')
+end
 
 tip.git_tag = tip.version == 'master' and tip.version or ('tome-%s'):format(tip.version)
 if not tip.git_tag then
@@ -155,6 +215,22 @@ resolvers = {
     attachtinkerbirth = function() end,
     birth_extra_tier1_zone = function() end,
     auto_equip_filters = function() end,
+    
+    -- Campaign-specific resolvers
+    for_campaign = function(campaign_name, func)
+        -- For spoiler generation, we assume all campaigns are valid
+        -- and we want to execute the function if it exists
+        if func and type(func) == "function" then
+            return func
+        end
+        return function() end
+    end,
+    
+    -- Callback registration for event handling
+    register_callbacks = function(callbacks)
+        -- For spoiler generation, we don't need to actually register callbacks
+        return function() end
+    end,
 }
 
 config.settings.tome = {}
@@ -257,8 +333,12 @@ for i, v in ipairs(all_dlc) do
 
     tip.dlc[v] = {}
     local dlc_def = old_loadfile(dlc .. '/init.lua')
-    setfenv(dlc_def, tip.dlc[v])
-    dlc_def()
+    if dlc_def then
+        setfenv(dlc_def, tip.dlc[v])
+        dlc_def()
+    else
+        print(("Warning: Could not load %s"):format(dlc .. '/init.lua'))
+    end
 
     -- The "right" thing to do is to process init.lua to check for
     -- hooks, overload, and superload.  For our purposes, we can assume
@@ -266,7 +346,12 @@ for i, v in ipairs(all_dlc) do
     -- superload modules.
     package.path = package.path..(';%s/overload/?.lua;%s/?.lua'):format(dlc, dlc)
     class:setCurrentHookDir('/../'..dlc..'/hooks')
-    old_loadfile(('%s/hooks/load.lua'):format(dlc))()
+    local hooks_load = old_loadfile(('%s/hooks/load.lua'):format(dlc))
+    if hooks_load then
+        hooks_load()
+    else
+        print(("Warning: Could not load %s"):format(('%s/hooks/load.lua'):format(dlc)))
+    end
 
     -- Hack: Hard-code loading Combat.lua.
     -- We run after mod.class.Actor, so pass that in loadPrevious
@@ -282,11 +367,17 @@ for i, v in ipairs(all_dlc) do
 
     -- Hack: Further patches for specific DLC
     if v:sub(1,4) == 'orcs' then
-        local PartyTinker = require 'mod.class.interface.PartyTinker'
-        game.party.__tinkers_ings = PartyTinker.__tinkers_ings
-        game.party.knowTinker = PartyTinker.knowTinker
-        local Actor = require 'mod.class.Actor'
-        Actor.T_METALSTAR = 'T_METALSTAR'
+        local ok, PartyTinker = pcall(require, 'mod.class.interface.PartyTinker')
+        if ok and PartyTinker then
+            game.party.__tinkers_ings = PartyTinker.__tinkers_ings
+            game.party.knowTinker = PartyTinker.knowTinker
+        else
+            print(("Warning: PartyTinker module not found for DLC %s"):format(v))
+        end
+        local ok2, Actor = pcall(require, 'mod.class.Actor')
+        if ok2 and Actor then
+            Actor.T_METALSTAR = 'T_METALSTAR'
+        end
     end
 
 end

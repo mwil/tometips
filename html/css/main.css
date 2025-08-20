@@ -134,10 +134,33 @@ html, body, #side-nav-container, #content-container
 /* Give header fields the same size.
  * Not sure if there's a cleaner way of doing this.
  */
-.header-tools input[type='text'], .header-tools select
+.header-tools input[type='text'], .header-tools input[type='number'], .header-tools select
 {
     border: 1px;
     padding: 1px;
+}
+
+.stat-power-container {
+    margin-right: 20px;
+}
+
+.stat-power-input {
+    width: 60px;
+}
+
+.adept-container {
+    margin-left: 10px;
+    margin-right: 20px;
+}
+
+.adept-container label {
+    font-size: 11px;
+    color: #ccc;
+    cursor: pointer;
+}
+
+.adept-checkbox {
+    margin-right: 5px;
 }
 
 .sticky
@@ -163,7 +186,7 @@ a.anchor
 {
     display: block;
     position: relative;
-    top: -50px;
+    top: -160px;
     visibility: hidden;
 }
 
@@ -393,7 +416,7 @@ table.old-new td {
 }
 
 .class-talents-detail {
-    height: 37px;
+    height: auto;
     padding-bottom: 5px;
 }
 
@@ -411,29 +434,7 @@ table.old-new td {
     padding-right: 5px;
 }
 
-.class-talents-detail.locked img {
-    opacity: 0.8;
-
-    /* filter:url syntax is the only variant supported by Firefox pre 34 */
-    filter: url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\'><filter id=\'grayscale\'><feColorMatrix type=\'saturate\' values=\'0\'/></filter></svg>#grayscale");
-
-    /* Newer, simpler syntax */
-    filter: grayscale(100%);
-    -moz-filter: grayscale(100%);
-    -webkit-filter: grayscale(100%);
-}
-
-.class-talents-detail.locked img:hover {
-    opacity: 1.0;
-
-    /* filter:url syntax is the only variant supported by Firefox pre 34 */
-    filter: url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\'><filter id=\'grayscale\'><feColorMatrix type=\'saturate\' values=\'1\'/></filter></svg>#grayscale");
-
-    /* Newer, simpler syntax */
-    filter: grayscale(0%);
-    -moz-filter: grayscale(0%);
-    -webkit-filter: grayscale(0%);
-}
+/* Removed grayscale effect from locked talents - they now appear in full color */
 
 .extra-stats h4 {
     visibility: hidden;
@@ -648,3 +649,296 @@ table.old-new td {
         page-break-after: avoid;
     }
 }
+
+/* ==========================================================================
+   Simple Talent Popup Styles
+   ========================================================================== */
+
+/* Simple popup overlay */
+#talent-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    display: none;
+}
+
+/* Simple popup container */
+#talent-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #3a3f44;
+    border: 1px solid #555;
+    border-radius: 5px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+    z-index: 10000;
+    padding: 20px;
+    color: #c8c8c8;
+}
+
+/* Popup header */
+#talent-popup .popup-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #555;
+    padding-bottom: 10px;
+}
+
+#talent-popup .popup-header img {
+    margin-right: 10px;
+}
+
+#talent-popup .popup-header h3 {
+    margin: 0;
+    flex: 1;
+    color: #ffffff;
+}
+
+/* Close button */
+#talent-popup .popup-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #999;
+    padding: 0;
+    margin-left: 10px;
+}
+
+#talent-popup .popup-close:hover {
+    color: #ffffff;
+}
+
+/* Popup content */
+#talent-popup .popup-content {
+    line-height: 1.4;
+}
+
+/* Make individual talent links more obvious */
+.individual-talent-link {
+    cursor: pointer;
+    display: inline-block;
+    transition: transform 0.1s;
+}
+
+.individual-talent-link:hover {
+    transform: scale(1.1);
+    text-decoration: none;
+}
+
+/* Active state for image size settings dropdown */
+.dropdown-option.active {
+    background-color: #337ab7;
+    color: white;
+}
+
+.dropdown-option.active:hover {
+    background-color: #23527c;
+    color: white;
+}
+
+/* Unified layout for talent trees - work with Bootstrap */
+.class-detail-container.container-fluid {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 30px !important;
+    margin: 20px 0 !important;
+    align-items: flex-start !important;
+    justify-content: flex-start !important;
+}
+
+.col-md-4 {
+    flex: 0 1 auto !important;
+    min-width: auto !important;
+    max-width: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+    width: auto !important;
+}
+
+
+/* Outer table structure for talent trees */
+.talent-trees-table {
+    width: auto !important;
+    max-width: 100% !important;
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+    margin: 0 !important;
+    padding: 8px 12px !important;
+    table-layout: auto !important;
+}
+
+.talent-tree-row {
+    background: transparent !important;
+    border-bottom: 1px solid #eee !important;
+    height: auto !important;
+}
+
+.talent-tree-cell {
+    padding: 4px 0 !important;
+    vertical-align: top !important;
+    border: none !important;
+    width: auto !important;
+}
+
+.talent-tree-header {
+    display: inline-block !important;
+    margin-bottom: 8px !important;
+    width: auto !important;
+}
+
+.talent-tree-cell > .talent-tree-header a {
+    font-weight: bold !important;
+    font-size: 14px !important;
+    text-decoration: none !important;
+    display: inline !important;
+}
+
+.talent-tree-cell > .talent-tree-header a:hover {
+    text-decoration: underline !important;
+}
+
+.talent-tree-header .talent-mastery {
+    display: inline !important;
+    margin-left: 0 !important;
+}
+
+/* Legacy list support (in case some templates still use lists) */
+.col-md-4 > ul {
+    list-style: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: block !important;
+}
+
+.col-md-4 > ul > li {
+    background: transparent !important;
+    padding: 10px 0 !important;
+    border: none !important;
+    border-bottom: 1px solid #eee !important;
+    margin-bottom: 15px !important; /* Default spacing, will be updated by JavaScript */
+    min-height: auto !important;
+    overflow: visible !important;
+}
+
+.col-md-4 > ul > li > a {
+    font-weight: bold !important;
+    font-size: 14px !important;
+    text-decoration: none !important;
+    display: block !important;
+    margin-bottom: 5px !important;
+}
+
+.col-md-4 > ul > li > a:hover {
+    text-decoration: underline !important;
+}
+
+/* Talent icons container - now using tables */
+.class-talents-detail {
+    margin: 4px 0 0 5px !important;
+    overflow: visible !important;
+    min-height: auto !important;
+}
+
+.talent-icons-table {
+    width: auto !important;
+    max-width: none !important;
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    table-layout: auto !important;
+}
+
+.talent-row {
+    background: transparent !important;
+    height: auto !important;
+}
+
+.talent-icon-cell {
+    padding: 0 6px !important;
+    vertical-align: top !important;
+    text-align: left !important;
+    border: none !important;
+    width: auto !important;
+    white-space: nowrap !important;
+}
+
+.talent-icon-cell a {
+    display: inline-block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 0 !important;
+}
+
+/* Size-specific table row spacing for horizontal icon layout - auto-scaling */
+.class-talents-detail.icon-size-32 .talent-row {
+    height: auto !important;
+    min-height: 36px !important;
+}
+
+.class-talents-detail.icon-size-32 .talent-icon-cell {
+    padding: 0 6px !important;
+}
+
+.class-talents-detail.icon-size-48 .talent-row {
+    height: auto !important;
+    min-height: 52px !important;
+}
+
+.class-talents-detail.icon-size-48 .talent-icon-cell {
+    padding: 0 6px !important;
+}
+
+.class-talents-detail.icon-size-64 .talent-row {
+    height: auto !important;
+    min-height: 68px !important;
+}
+
+.class-talents-detail.icon-size-64 .talent-icon-cell {
+    padding: 0 6px !important;
+}
+
+
+
+/* Icon size specific spacing for outer table rows - compact */
+.talent-tree-row.spacing-32 .talent-tree-cell {
+    padding: 0 !important;
+}
+
+.talent-tree-row.spacing-48 .talent-tree-cell {
+    padding: 0 !important;
+}
+
+.talent-tree-row.spacing-64 .talent-tree-cell {
+    padding: 0 !important;
+}
+
+
+/* Additional spacing support for different icon sizes (legacy list support) */
+.col-md-4 > ul > li.spacing-32 {
+    margin-bottom: 25px !important;
+    padding-bottom: 10px !important;
+}
+
+.col-md-4 > ul > li.spacing-48 {
+    margin-bottom: 35px !important;
+    padding-bottom: 15px !important;
+}
+
+.col-md-4 > ul > li.spacing-64 {
+    margin-bottom: 45px !important;
+    padding-bottom: 20px !important;
+}
+
+

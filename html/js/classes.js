@@ -33,13 +33,66 @@ function navClasses(tome) {
 }
 
 function listClasses(tome, cls) {
-    return Handlebars.templates.class(getData().classes.classes_by_id[cls]);
+    var classData = JSON.parse(JSON.stringify(getData().classes.classes_by_id[cls])); // Deep clone to avoid modifying original
+    
+    // Sort talent types for each subclass to put locked ones at the bottom
+    if (classData && classData.subclass_list) {
+        classData.subclass_list.forEach(function(subclass) {
+            ['talents_types_class', 'talents_types_generic'].forEach(function(talentTypeKey) {
+                if (subclass[talentTypeKey]) {
+                    // Convert to sorted array for template use
+                    var talentArray = Object.keys(subclass[talentTypeKey]).map(function(key) {
+                        return {
+                            key: key,
+                            value: subclass[talentTypeKey][key],
+                            isLocked: !subclass[talentTypeKey][key][0] // value.[0] indicates if unlocked
+                        };
+                    });
+                    
+                    // Sort: unlocked first, then locked
+                    talentArray.sort(function(a, b) {
+                        if (a.isLocked === b.isLocked) {
+                            return a.key.localeCompare(b.key); // alphabetical within same lock status
+                        }
+                        return a.isLocked ? 1 : -1; // unlocked first
+                    });
+                    
+                    // Replace object with sorted array
+                    subclass[talentTypeKey + '_sorted'] = talentArray;
+                }
+            });
+        });
+    }
+    
+    return Handlebars.templates.class(classData);
 }
 
 function fillClassTalents(tome, cls) {
     var data = getData();
     var subclasses = data.classes.classes_by_id[cls].subclass_list,
         load_talents = {};
+
+    // Setup talent modal handlers immediately
+    setupTalentModalHandlers();
+    
+    // Set up handlers after a delay to ensure they stick
+    setTimeout(function() {
+        setupTalentModalHandlers();
+        
+        // Simple direct click handler
+        $('.individual-talent-link').off('click').on('click', function(e) {
+            e.preventDefault();
+            
+            var $link = $(this);
+            var talentId = $link.data('talent-id');
+            var talentType = $link.data('talent-type');
+            var talentName = $link.data('talent-name');
+            
+            showSimpleTalentPopup(talentId, talentType, talentName);
+            
+            return false;
+        });
+    }, 1000);
 
     function list_class_talents(value, key, list) {
         var category = key.split(/ ?\/ ?/)[0];
@@ -56,14 +109,160 @@ function fillClassTalents(tome, cls) {
         loadDataIfNeeded('talents.' + category, function() {
             _.each(talents, function(value, this_type, list) {
                 // TODO: Should index talents by talent_type as well as sequential list to avoid the need to use _.find
-                var talent_details = _.find(getData().talents[category], function(t) { return t.type == this_type; }),
-                    talent_html = Handlebars.partials.class_talents_detail(talent_details);
-                $('.class-talents-detail[data-talent-type="' + toHtmlId(this_type) + '"]').html(talent_html);
+                var talent_details = _.find(getData().talents[category], function(t) { return t.type == this_type; });
+                
+                // Individual talents within each tree maintain their original order
+                // The real "locked" concept applies to talent trees, not individual talents
+                
+                var talent_html = Handlebars.templates.class_talents_detail(talent_details);
+                var $container = $('.class-talents-detail[data-talent-type="' + toHtmlId(this_type) + '"]');
+                $container.html(talent_html);
+                
+                // Apply current icon size class for proper spacing
+                if (typeof imgSizeSettings !== 'undefined') {
+                    var currentSize = imgSizeSettings.get();
+                    $container.removeClass('icon-size-32 icon-size-48 icon-size-64')
+                             .addClass('icon-size-' + currentSize);
+                    
+                    // Also apply spacing to parent list items
+                    imgSizeSettings.applyIconSizeClasses(currentSize);
+                }
             });
 
             markupHintLinks();
+            setupTalentModalHandlers();
         });
     });
+}
+
+/**Sets up event handlers for individual talent links to show modal popups */
+function setupTalentModalHandlers() {
+    // Remove any existing handlers completely
+    $(document).off('click', '.individual-talent-link');
+    
+    // Handle clicks on individual talent icons
+    $(document).on('click', '.individual-talent-link', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        var $link = $(this);
+        var talentId = $link.data('talent-id');
+        var talentType = $link.data('talent-type');
+        var talentName = $link.data('talent-name');
+        
+        // Show loading state
+        showTalentModal({
+            name: talentName,
+            id: talentId,
+            type: talentType,
+            info_text: '<p class="text-center"><i class="fa fa-spinner fa-spin"></i> Loading talent data...</p>'
+        });
+        
+        // Load the specific talent data
+        loadIndividualTalentData(talentId, talentType, talentName);
+        
+        return false;
+    });
+    
+    // Handle individual talent clicks within modal
+    $(document).off('click.individualTalent', '.individual-talent');
+    $(document).on('click.individualTalent', '.individual-talent', function() {
+        var talentId = $(this).data('talent-id');
+        var talentType = $('#talent-modal').data('current-talent-type');
+        
+        // Find the specific talent data
+        var category = talentType.split('/')[0];
+        loadDataIfNeeded('talents.' + category, function() {
+            var talentTree = _.find(getData().talents[category], function(t) { return t.type == talentType; });
+            if (talentTree && talentTree.talents) {
+                var individualTalent = _.find(talentTree.talents, function(t) { return t.id == talentId; });
+                if (individualTalent) {
+                    showTalentModal(individualTalent);
+                }
+            }
+        });
+    });
+}
+
+/**Loads individual talent data for the modal */
+function loadIndividualTalentData(talentId, talentType, talentName) {
+    var category = talentType.split('/')[0];
+    
+    loadDataIfNeeded('talents.' + category, function() {
+        var talentTree = _.find(getData().talents[category], function(t) { return t.type == talentType; });
+        
+        if (talentTree && talentTree.talents) {
+            var individualTalent = _.find(talentTree.talents, function(t) { return t.id == talentId; });
+            if (individualTalent) {
+                showTalentModal(individualTalent);
+            } else {
+                showTalentModal({
+                    name: talentName,
+                    id: talentId,
+                    type: talentType,
+                    info_text: '<p class="text-danger">Error: Could not find talent "' + talentId + '" in talent tree.</p>'
+                });
+            }
+        } else {
+            showTalentModal({
+                name: talentName,
+                id: talentId,
+                type: talentType,
+                info_text: '<p class="text-danger">Error: Could not load talent tree data.</p>'
+            });
+        }
+    });
+}
+
+/**Loads talent data for the modal */
+function loadTalentModalData(talentType, displayName) {
+    var category = talentType.split('/')[0];
+    
+    loadDataIfNeeded('talents.' + category, function() {
+        var talentTree = _.find(getData().talents[category], function(t) { return t.type == talentType; });
+        
+        if (talentTree) {
+            // Store current talent type for individual talent clicks
+            $('#talent-modal').data('current-talent-type', talentType);
+            
+            showTalentModal(talentTree);
+        } else {
+            showTalentModal({
+                name: displayName,
+                type: talentType,
+                info_text: '<p class="text-danger">Error: Could not load talent data.</p>'
+            });
+        }
+    });
+}
+
+/**Shows the talent modal with given talent data */
+function showTalentModal(talentData) {
+    try {
+        // Ensure modal container exists
+        if (!$('#talent-modal').length) {
+            $('body').append('<div id="talent-modal-container"></div>');
+        }
+        
+        // Check if template exists
+        if (!Handlebars.templates.talent_modal) {
+            return;
+        }
+        
+        // Render modal with talent data
+        var modalHtml = Handlebars.templates.talent_modal(talentData);
+        $('#talent-modal-container').html(modalHtml);
+        
+        // Show modal
+        $('#talent-modal').modal('show');
+        
+        // Enable tooltips for any new content
+        if (typeof enableTalentTooltips === 'function') {
+            enableTalentTooltips();
+        }
+    } catch (error) {
+        alert('Error loading talent data: ' + error.message);
+    }
 }
 
 /**loadDataIfNeeded for classes */
@@ -72,4 +271,127 @@ function loadClassesIfNeeded(success) {
         fixupClasses(tome);
         success(data);
     });
+}
+
+// Simple talent popup functions
+function showSimpleTalentPopup(talentId, talentType, talentName) {
+    // Create popup HTML if it doesn't exist
+    if (!$('#talent-popup-overlay').length) {
+        $('body').append(`
+            <div id="talent-popup-overlay">
+                <div id="talent-popup">
+                    <div class="popup-header">
+                        <h3 id="talent-popup-title">Loading...</h3>
+                        <button class="popup-close">&times;</button>
+                    </div>
+                    <div class="popup-content" id="talent-popup-content">
+                        <p><i class="fa fa-spinner fa-spin"></i> Loading talent data...</p>
+                    </div>
+                </div>
+            </div>
+        `);
+        
+        // Set up close handlers
+        $('#talent-popup-overlay').on('click', function(e) {
+            if (e.target === this) {
+                hideSimpleTalentPopup();
+            }
+        });
+        
+        $('.popup-close').on('click', function() {
+            hideSimpleTalentPopup();
+        });
+        
+        // ESC key to close
+        $(document).on('keyup.talentPopup', function(e) {
+            if (e.keyCode === 27) { // ESC
+                hideSimpleTalentPopup();
+            }
+        });
+    }
+    
+    // Show popup
+    $('#talent-popup-overlay').show();
+    $('#talent-popup-title').text(talentName);
+    $('#talent-popup-content').html('<p><i class="fa fa-spinner fa-spin"></i> Loading talent data...</p>');
+    
+    // Load talent data
+    loadSimpleTalentData(talentId, talentType, talentName);
+}
+
+function hideSimpleTalentPopup() {
+    $('#talent-popup-overlay').hide();
+    $(document).off('keyup.talentPopup');
+}
+
+function loadSimpleTalentData(talentId, talentType, talentName) {
+    var category = talentType.split('/')[0];
+    
+    // Check if data exists first
+    var data = getData();
+    if (!data.talents) {
+        $('#talent-popup-content').html('<p style="color: #ff6b6b;">Error: No talent data loaded.</p>');
+        return;
+    }
+    
+    if (!data.talents[category]) {
+        $('#talent-popup-content').html('<p style="color: #ff6b6b;">Error: Talent category "' + category + '" not found.<br>Available categories: ' + Object.keys(data.talents).join(', ') + '</p>');
+        return;
+    }
+    
+    loadDataIfNeeded('talents.' + category, function() {
+        var talentTree = _.find(getData().talents[category], function(t) { return t.type == talentType; });
+        
+        if (talentTree && talentTree.talents) {
+            var individualTalent = _.find(talentTree.talents, function(t) { return t.id == talentId; });
+            
+            if (individualTalent) {
+                displaySimpleTalentData(individualTalent);
+            } else {
+                $('#talent-popup-content').html('<p style="color: #ff6b6b;">Error: Could not find talent "' + talentId + '" in talent tree.<br>Available talents: ' + talentTree.talents.map(function(t) { return t.id; }).join(', ') + '</p>');
+            }
+        } else {
+            $('#talent-popup-content').html('<p style="color: #ff6b6b;">Error: Could not load talent tree "' + talentType + '".</p>');
+        }
+    });
+}
+
+function displaySimpleTalentData(talent) {
+    var html = '';
+    
+    // Add talent image (using 96px for better detail in popup)
+    if (talent.image) {
+        html += '<img src="img/talents/96/' + talent.image + '" style="float: left; margin: 8px 24px 16px 8px;" onerror="talentImgError(this)">';
+    }
+    
+    // Add basic info in a table structure that respects the float
+    html += '<table style="border: none; background: transparent; margin-bottom: 15px;">';
+    
+    if (talent.mode) {
+        html += '<tr><td style="border: none; padding: 2px 0; width: 120px; font-weight: bold; background: transparent;">Use Mode:</td><td style="border: none; padding: 2px 0; background: transparent;">' + talent.mode + '</td></tr>';
+    }
+    
+    if (talent.cost) {
+        html += '<tr><td style="border: none; padding: 2px 0; width: 120px; font-weight: bold; background: transparent;">Cost:</td><td style="border: none; padding: 2px 0; background: transparent;">' + talent.cost + '</td></tr>';
+    }
+    
+    if (talent.range) {
+        html += '<tr><td style="border: none; padding: 2px 0; width: 120px; font-weight: bold; background: transparent;">Range:</td><td style="border: none; padding: 2px 0; background: transparent;">' + talent.range + '</td></tr>';
+    }
+    
+    if (talent.cooldown) {
+        html += '<tr><td style="border: none; padding: 2px 0; width: 120px; font-weight: bold; background: transparent;">Cooldown:</td><td style="border: none; padding: 2px 0; background: transparent;">' + talent.cooldown + '</td></tr>';
+    }
+    
+    if (talent.use_speed) {
+        html += '<tr><td style="border: none; padding: 2px 0; width: 120px; font-weight: bold; background: transparent;">Use Speed:</td><td style="border: none; padding: 2px 0; background: transparent;">' + talent.use_speed + '</td></tr>';
+    }
+    
+    html += '</table>';
+    
+    if (talent.info_text) {
+        html += '<div style="clear: both; margin-top: 15px;"><strong>Description:</strong><br>' + talent.info_text + '</div>';
+    }
+    
+    $('#talent-popup-content').html(html);
 }
