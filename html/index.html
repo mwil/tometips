@@ -50,12 +50,11 @@
             <p class="chromeframe">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">activate Google Chrome Frame</a> to improve your experience.</p>
         <![endif]-->
 
-        <div id="side-nav-container" class="col-md-2">
-            <div class="page-header"></div>
+        <div id="side-nav-container">
             <div id="side-nav"></div>
         </div>
 
-        <div id="content-container" class="col-md-10">
+        <div id="content-container">
             <div id="content-header" class="page-header">
                 <h1><a href="#">ToME Tips</a></h1>
 
@@ -66,7 +65,10 @@
                 </ul>
 
                 <div class="header-tools">
-                    <input class="typeahead" type="text" placeholder="Search...">
+                    <div class="search-container">
+                        <input class="typeahead" type="text" placeholder="Search...">
+                        <span class="search-clear" title="Clear search">×</span>
+                    </div>
                     <span class="ver-dropdown-container hidden">
                         Version:
                         <select class="ver-dropdown">

@@ -73,12 +73,49 @@ function updateNav() {
 }
 
 
-function scrollToId()
-{
-    var $hash = $(locationHashNoQuery().replace(/\//g, '\\/'));
-    if ($hash.length) {
-        $("#content-container").scrollTop($("#content-container").scrollTop() + $hash.offset().top);
+// Removed old scrollToId function - using the updated one below
+
+function adjustSidebarLayout() {
+    // Function to adjust content margin and width based on actual sidebar width
+    function updateContentMargin() {
+        var $sidebar = $('#side-nav-container');
+        var $content = $('#content');
+        
+        // Wait for sidebar to be populated and measure its actual width
+        if ($sidebar.length && $sidebar.children().length > 0) {
+            var sidebarWidth = $sidebar.outerWidth();
+            var margin = sidebarWidth + 20; // Add 20px buffer
+            $content.css({
+                'margin-left': margin + 'px',
+                'width': 'calc(100% - ' + margin + 'px)' // Update width to fill remaining space
+            });
+        }
     }
+    
+    // Initial adjustment
+    setTimeout(updateContentMargin, 100);
+    
+    // Re-adjust when sidebar content changes (navigation loads)
+    var observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'childList') {
+                setTimeout(updateContentMargin, 50);
+            }
+        });
+    });
+    
+    // Observe changes to sidebar content
+    if ($('#side-nav').length) {
+        observer.observe($('#side-nav')[0], {
+            childList: true,
+            subtree: true
+        });
+    }
+    
+    // Re-adjust on window resize
+    $(window).on('resize', function() {
+        setTimeout(updateContentMargin, 100);
+    });
 }
 
 function enableExpandCollapseAll()
@@ -140,29 +177,7 @@ function updateFinished() {
     }
 }
 
-function makeStickyHeader($header, $container)
-{
-    var header_top = $header.children('h1').offset().top;
-
-    // Making the header sticky (fixed/absolute position) removes it from
-    // layout, causing content to jump up.  To prevent this, create an empty
-    // placeholder div that takes up the same space as the non-sticky
-    // header.
-    var $placeholder = $("<div class='sticky-placeholder'></div>").hide().css('height', $header.outerHeight(true) + 'px').insertAfter($header);
-
-    $container.scroll(function() {
-        if ($container.scrollTop() > header_top) {
-            // Standard approach to sticky header is position: fixed.
-            // That's hard to make work with our two-column, padding/margin
-            // design, so manually set positioning instead.
-            $header.addClass('sticky').css('top', $container.scrollTop() + 'px');
-            $placeholder.show();
-        } else {
-            $header.removeClass('sticky').css('top', '');
-            $placeholder.hide();
-        }
-    });
-}
+// Header is now always fixed - no sticky behavior needed
 
 var options = {
     imgSize: 48
@@ -356,34 +371,7 @@ Handlebars.registerHelper('textStat', function(desc, value) {
     return new Handlebars.SafeString('<dt>' + desc + ':</dt><dd><span class="stat-neutral">' + value + '</span></dd>');
 });
 
-function configureImgSize() {
-    options.imgSize = parseInt($.cookie("imgSize") || options.imgSize);
-
-    function showImgSizeSelection() {
-        $('.option-img-size').removeClass("selected");
-        $('.option-img-size[data-img-size="' + options.imgSize + '"]').addClass("selected");
-    }
-
-    function changeImgSize(old_size, new_size) {
-        $("img").each(function(n, e) {
-            if ($(this).attr("width") == old_size) {
-                $(this).attr("width", new_size)
-                    .attr("height", new_size)
-                    .attr("src", $(this).attr("src").replace(old_size.toString(), new_size.toString()));
-            }
-        });
-    }
-
-    showImgSizeSelection();
-
-    $(".option-img-size").click(function(e) {
-        var old_size = options.imgSize;
-        options.imgSize = parseInt($(this).attr("data-img-size"));
-        showImgSizeSelection();
-        changeImgSize(old_size, options.imgSize);
-        $.cookie('imgSize', options.imgSize, { expires: 365, path: '/' });
-    });
-}
+// Old configureImgSize function removed - replaced by new imgSizeSettings system
 
 var typeahead = (function() {
     var categories = [ 'races', 'classes', 'talents-types', 'talents' ];
@@ -436,6 +424,102 @@ var typeahead = (function() {
             });
         }
         $('.typeahead').typeahead({ highlight: true, minLength: 1 }, datasets);
+        
+        // Add clear button functionality (using event delegation)
+        console.log('Binding clear button functionality');
+        $(document).off('click', '.search-clear').on('click', '.search-clear', function() {
+            console.log('Clear button clicked');
+            var $input = $('.typeahead');
+            $input.typeahead('val', '');
+            $input.val('');
+            $input.trigger('input');
+            $('.search-container').removeClass('has-content');
+        });
+        
+        // Show/hide clear button based on input content (using event delegation)
+        $(document).off('input', '.typeahead').on('input', '.typeahead', function() {
+            if ($(this).val().length > 0) {
+                $('.search-container').addClass('has-content');
+            } else {
+                $('.search-container').removeClass('has-content');
+            }
+        });
+        
+        // Handle Enter key to navigate to highlighted result - try multiple approaches
+        $('.typeahead').on('typeahead:select', function(e, suggestion) {
+            console.log('typeahead:select triggered', suggestion);
+            if (suggestion && suggestion.href) {
+                window.location.hash = toUnsafeHtmlId(suggestion.href) + currentQuery();
+            }
+        });
+        
+        $('.typeahead').on('typeahead:autocomplete', function(e, suggestion) {
+            console.log('typeahead:autocomplete triggered', suggestion);
+            if (suggestion && suggestion.href) {
+                window.location.hash = toUnsafeHtmlId(suggestion.href) + currentQuery();
+            }
+        });
+        
+        var currentHighlighted = null;
+        
+        // Function to enhance talent URLs for direct panel linking
+        function enhanceTalentUrl(href, $element) {
+            // For now, just return the original href
+            // TODO: Implement logic to detect individual talents and construct direct URLs
+            return href;
+        }
+        
+        // Debug: check what happens with keyboard navigation (using event delegation)
+        $(document).off('keydown', '.typeahead').on('keydown', '.typeahead', function(e) {
+            if (e.which === 38 || e.which === 40) { // Up/Down arrows
+                console.log('Arrow key pressed:', e.which);
+                setTimeout(function() {
+                    var $highlighted = $('.tt-suggestion.tt-cursor, .tt-suggestion:hover, .tt-suggestion.tt-is-under-cursor');
+                    console.log('Highlighted elements:', $highlighted.length, $highlighted);
+                    // Add visual highlighting if missing
+                    $('.tt-suggestion').removeClass('manual-highlight');
+                    $highlighted.addClass('manual-highlight');
+                    // Store the currently highlighted element
+                    currentHighlighted = $highlighted.length > 0 ? $highlighted.find('a').attr('href') : null;
+                    console.log('Stored href:', currentHighlighted);
+                }, 10);
+            }
+            if (e.which === 13) { // Enter
+                console.log('Enter key pressed');
+                e.preventDefault();
+                
+                // Try immediate check first
+                var $highlighted = $('.tt-suggestion.tt-cursor, .tt-suggestion:hover, .tt-suggestion.tt-is-under-cursor, .tt-suggestion.manual-highlight');
+                console.log('Immediate highlighted on Enter:', $highlighted.length, $highlighted);
+                
+                if ($highlighted.length > 0) {
+                    var $link = $highlighted.find('a');
+                    console.log('Link found:', $link.length, $link.attr('href'));
+                    if ($link.length > 0) {
+                        window.location.hash = $link.attr('href').substring(1); // Remove the leading #
+                        // Clear search field after navigation
+                        $('.typeahead').typeahead('val', '');
+                        $('.typeahead').val('');
+                        $('.search-container').removeClass('has-content');
+                        return;
+                    }
+                }
+                
+                // Fall back to stored href
+                if (currentHighlighted) {
+                    console.log('Using stored href:', currentHighlighted);
+                    // Remove leading # if present
+                    var hash = currentHighlighted.startsWith('#') ? currentHighlighted.substring(1) : currentHighlighted;
+                    window.location.hash = hash;
+                    // Clear search field after navigation
+                    $('.typeahead').typeahead('val', '');
+                    $('.typeahead').val('');
+                    $('.search-container').removeClass('has-content');
+                } else {
+                    console.log('No highlighted element found');
+                }
+            }
+        });
     }
 
     function updateTypeahead(version) {
@@ -718,6 +802,38 @@ function initializeRoutes() {
                 // See https://github.com/twbs/bootstrap/issues/5859
                 $(".talent-details.collapse").collapse({toggle: false});
 
+                var expandingAll = false;
+                
+                $(".expand-all").on('click', function() {
+                    expandingAll = true;
+                    setTimeout(function() { expandingAll = false; }, 1000);
+                });
+                
+                $(".talent-details.collapse").on('shown.bs.collapse', function () {
+                    if (expandingAll) return;
+                    
+                    var $panel = $(this);
+                    var panelBottom = $panel.offset().top + $panel.outerHeight();
+                    var viewportBottom = $(window).scrollTop() + $(window).height();
+                    
+                    if (panelBottom > viewportBottom) {
+                        var scrollTarget = panelBottom - $(window).height() + 20;
+                        
+                        $('html, body').animate({
+                            scrollTop: scrollTarget
+                        }, 300);
+                        
+                        $("#content-container").animate({
+                            scrollTop: $("#content-container").scrollTop() + (panelBottom - viewportBottom) + 20
+                        }, 300);
+                        
+                        window.scrollTo({
+                            top: scrollTarget,
+                            behavior: 'smooth'
+                        });
+                    }
+                });
+
                 enableTalentTooltips();
 
                 fillTalentAvailability(tome, category);
@@ -730,7 +846,8 @@ function initializeRoutes() {
         }),
 
         talents_category_type_id: crossroads.addRoute("talents/{category}/{type}/{talent_id}:?query:", function(category, type, talent_id, query) {
-            // TODO: scrollToId not yet working for talent_id links, and talent_id links aren't yet published
+            // Load the category page - it will automatically call scrollToId() when done
+            // The scrollToId() function will find the element with ID: talents/category/type/talent_id
             routes.talents_category.matched.dispatch(category, query);
         }),
 
@@ -768,14 +885,45 @@ function initializeRoutes() {
                 showCollapsed(this_nav);
 
                 $("#content").html(listRaces(tome, r));
-                scrollToId();
+                
+                fillRaceTalents(tome, r, function() {
+                    // All race talent data has loaded, now scroll to the target
+                    scrollToId();
+                });
 
                 updateFinished();
             });
         }),
 
         races_race_subrace: crossroads.addRoute("races/{r}/{subrace}:?query:", function(r, subrace, query) {
-            routes.races_race.matched.dispatch(r, query);
+            // For subrace routes, load the parent race page but skip the scroll-to-top behavior
+            versions.update(query);
+
+            loadRacesIfNeeded(function() {
+                routes.races.matched.dispatch(query);
+
+                var data = getData();
+                if (!data.races.races_by_id[r]) {
+                    handleUnknownRace(tome, r);
+                    return;
+                }
+
+                document.title += ' - ' + data.races.races_by_id[r].display_name;
+
+                // Skip the scrollTop(0) for subrace navigation
+
+                var this_nav = "#nav-" + r;
+                showCollapsed(this_nav);
+
+                $("#content").html(listRaces(tome, r));
+                
+                fillRaceTalents(tome, r, function() {
+                    // All race talent data has loaded, now scroll to the target
+                    scrollToId();
+                });
+
+                updateFinished();
+            });
         }),
 
         classes: crossroads.addRoute('classes:?query:', function(query) {
@@ -806,19 +954,37 @@ function initializeRoutes() {
 
                 $("#content").html(listClasses(tome, cls));
                 
-                fillClassTalents(tome, cls);
-                
-                // Delay scrollToId to allow table content to render
-                setTimeout(function() {
+                fillClassTalents(tome, cls, function() {
+                    // All class talent data has loaded, now scroll to the target
                     scrollToId();
-                }, 200);
+                });
 
                 updateFinished();
             });
         }),
 
         classes_class_subclass: crossroads.addRoute("classes/{cls}/{subclass}:?query:", function(cls, subclass, query) {
-            routes.classes_class.matched.dispatch(cls, query);
+            // For subclass routes, load the parent class page but skip the scroll-to-top behavior
+            versions.update(query);
+
+            loadClassesIfNeeded(function() {
+                routes.classes.matched.dispatch(query);
+                document.title += ' - ' + getData().classes.classes_by_id[cls].display_name;
+
+                // Skip the scrollTop(0) for subclass navigation
+                
+                var this_nav = "#nav-" + cls;
+                showCollapsed(this_nav);
+
+                $("#content").html(listClasses(tome, cls));
+                
+                fillClassTalents(tome, cls, function() {
+                    // All class talent data has loaded, now scroll to the target
+                    scrollToId();
+                });
+
+                updateFinished();
+            });
         })
     };
 
@@ -995,10 +1161,52 @@ var imgSizeSettings = {
 // Handlebars helper for accessing settings
 Handlebars.registerHelper('opt', function(option) {
     if (option === 'imgSize') {
-        return imgSizeSettings.get();
+        // Get the current menu setting
+        var menuSize = imgSizeSettings.get();
+        
+        // Check if we're on the talents page vs classes page
+        var currentHash = window.location.hash || '';
+        var isTalentsPage = currentHash.includes('#talents');
+        
+        if (isTalentsPage) {
+            // Talents page mapping: Small=32, Medium=64, Large=96
+            switch(menuSize) {
+                case 32: return 32; // Small
+                case 48: return 64; // Medium
+                case 64: return 96; // Large
+                default: return 64; // Default to medium
+            }
+        } else {
+            // Classes page mapping: Small=32, Medium=48, Large=64
+            return menuSize;
+        }
     }
     return '';
 });
+
+function handleTalentsPageSizeChange(menuSize) {
+    // Map menu size to actual size for talents page
+    var actualSize;
+    switch(menuSize) {
+        case 32: actualSize = 32; break; // Small
+        case 48: actualSize = 64; break; // Medium  
+        case 64: actualSize = 96; break; // Large
+        default: actualSize = 64; break; // Default to medium
+    }
+    
+    // Update all talent images on the page
+    $('.panel-title img, .talent-details img').each(function() {
+        var $img = $(this);
+        var currentSrc = $img.attr('src');
+        if (currentSrc && currentSrc.includes('/talents/')) {
+            // Update image src to use new size
+            var newSrc = currentSrc.replace(/\/\d+\//, '/' + actualSize + '/');
+            $img.attr('src', newSrc);
+            $img.attr('width', actualSize);
+            $img.attr('height', actualSize);
+        }
+    });
+}
 
 function configureImgSize() {
     // Load saved setting
@@ -1015,23 +1223,31 @@ function configureImgSize() {
         // Apply new size classes for proper spacing
         imgSizeSettings.applyIconSizeClasses(newSize);
         
-        // Trigger re-render of talent icons that are currently visible
-        $('.class-talents-detail').each(function() {
-            var $container = $(this);
-            if ($container.children().length > 0) {
-                // Re-render this talent tree's icons
-                var talentType = $container.data('talent-type');
-                $container.find('img').each(function() {
-                    var $img = $(this);
-                    var currentSrc = $img.attr('src');
-                    // Update image src to use new size
-                    var newSrc = currentSrc.replace(/\/\d+\//, '/' + newSize + '/');
-                    $img.attr('src', newSrc);
-                    $img.attr('width', newSize);
-                    $img.attr('height', newSize);
-                });
-            }
-        });
+        // Check if we're on talents page or classes page
+        var currentHash = window.location.hash || '';
+        var isTalentsPage = currentHash.includes('#talents');
+        
+        if (isTalentsPage) {
+            // For talents page, re-render images with size mapping
+            handleTalentsPageSizeChange(newSize);
+        } else {
+            // For classes page, update image sources directly
+            $('.class-talents-detail').each(function() {
+                var $container = $(this);
+                if ($container.children().length > 0) {
+                    // Re-render this talent tree's icons
+                    $container.find('img').each(function() {
+                        var $img = $(this);
+                        var currentSrc = $img.attr('src');
+                        // Update image src to use new size
+                        var newSrc = currentSrc.replace(/\/\d+\//, '/' + newSize + '/');
+                        $img.attr('src', newSrc);
+                        $img.attr('width', newSize);
+                        $img.attr('height', newSize);
+                    });
+                }
+            });
+        }
     });
 }
 
@@ -1043,6 +1259,88 @@ window.testSpacing = function(size) {
         imgSizeSettings.applyIconSizeClasses(size);
     }
 };
+
+// Helper function to get location hash without query parameters
+function locationHashNoQuery() {
+    return location.hash.split('?')[0];
+}
+
+// Dynamic anchor scrolling function
+// HOW DEEP TALENT NAVIGATION WORKS:
+// 1. Search results create URLs like: #talents/chronomancy/flux/attenuate
+// 2. The talents_category_type_id route delegates to talents_category route
+// 3. The talents_category route loads data, renders content, then calls scrollToId()
+// 4. The handlebars template (talent_by_type.handlebars) creates elements with IDs like:
+//    - talents/chronomancy/flux/t_attenuate (note the t_ prefix!)
+// 5. scrollToId() tries multiple ID formats to find the correct element:
+//    a) Direct match: talents/chronomancy/flux/attenuate
+//    b) With t_ prefix: talents/chronomancy/flux/t_attenuate  
+//    c) With t_ prefix + toHtmlId transform for special chars
+// 6. Once found, it scrolls directly to the talent element
+function scrollToId() {
+    var hash = locationHashNoQuery();
+    if (!hash) return;
+    
+    // Remove the # and convert to selector
+    var targetId = hash.substring(1);
+    
+    // Try to find the element - first without escaping for modern IDs like "talents/category/type/id"
+    var $target = document.getElementById(targetId) ? $(document.getElementById(targetId)) : null;
+    
+    // If not found and this looks like a deep talent link, try with t_ prefix and toHtmlId transformation
+    if (!$target && targetId.match(/^talents\/[^\/]+\/[^\/]+\/[^\/]+$/)) {
+        var parts = targetId.split('/');
+        var talentId = parts[3];
+        
+        // Try with t_ prefix (most common case)
+        var prefixedId = parts[0] + '/' + parts[1] + '/' + parts[2] + '/t_' + talentId;
+        $target = document.getElementById(prefixedId) ? $(document.getElementById(prefixedId)) : null;
+        
+        // If still not found, try with t_ prefix and toHtmlId transformation (for talents with special characters)
+        if (!$target) {
+            var transformedId = talentId.toLowerCase().replace(/[':\/]/, '_');
+            var transformedPrefixedId = parts[0] + '/' + parts[1] + '/' + parts[2] + '/t_' + transformedId;
+            $target = document.getElementById(transformedPrefixedId) ? $(document.getElementById(transformedPrefixedId)) : null;
+        }
+    }
+    
+    // If still not found, fall back to jQuery selector (for backwards compatibility with other page elements)
+    if (!$target || $target.length === 0) {
+        var escapedId = targetId.replace(/[!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~]/g, "\\$&");
+        $target = $('#' + escapedId);
+    }
+    
+    if ($target.length) {
+        // Scroll to element with minimal breathing room
+        var totalOffset = 4;
+        
+        // For talent links, scroll to the panel heading instead of the link itself for better visual positioning
+        var $scrollTarget = $target;
+        if ($target.closest('.panel-heading').length) {
+            $scrollTarget = $target.closest('.panel-heading');
+        }
+        
+        // Use the element's position within the content, not relative to container
+        var $content = $('#content');
+        var contentTop = $content.offset().top;
+        var elementTop = $scrollTarget.offset().top;
+        
+        // Calculate the scroll position needed
+        var targetScroll = elementTop - contentTop - totalOffset;
+        
+        // Scroll to the calculated position
+        $("#content-container").scrollTop(Math.max(0, targetScroll));
+        
+        // Auto-expand talent collapsible if this is a deep talent link
+        if (targetId.match(/^talents\/[^\/]+\/[^\/]+\/[^\/]+$/)) {
+            // Find the collapse panel associated with this talent
+            var $collapsePanel = $target.closest('.panel').find('.panel-collapse.collapse');
+            if ($collapsePanel.length && !$collapsePanel.hasClass('in')) {
+                $collapsePanel.collapse('show');
+            }
+        }
+    }
+}
 
 window.onerror = function(msg, url, line) {
     $("html").removeClass("wait");
@@ -1065,8 +1363,6 @@ $(function() {
     $(document).ajaxStart(function() { $("html").addClass("wait"); });
     $(document).ajaxStop(function() { $("html").removeClass("wait"); });
 
-    $("#side-nav-container .page-header").height($("#content-header").height());
-
     // Clicking on a ".clickable" element triggers the <a> within it.
     $("html").on("click", ".clickable", function(e) {
         if (e.target.nodeName == 'A') {
@@ -1081,6 +1377,70 @@ $(function() {
     // Hack: Clicking the expand / collapse within an <a> doesn't trigger the <a>.
     $("#side-nav").on("click", ".dropdown", function(e) {
         e.preventDefault();
+        
+        // Implement accordion behavior - close other open dropdowns
+        var $clickedDropdown = $(this);
+        var $parentLi = $clickedDropdown.closest('li');
+        var $targetCollapse = $parentLi.find('.collapse').first();
+        
+        // If this dropdown is about to be expanded (currently collapsed)
+        if ($clickedDropdown.hasClass('collapsed')) {
+            // Close all other open dropdowns at the same level
+            $parentLi.siblings().each(function() {
+                var $siblingCollapse = $(this).find('.collapse').first();
+                if ($siblingCollapse.hasClass('in')) {
+                    $siblingCollapse.collapse('hide');
+                    $(this).find('.dropdown').addClass('collapsed');
+                }
+            });
+        }
+    });
+
+    // Handle subitem clicks (prevent event bubbling to parent)
+    $("#side-nav").on("click", ".collapse li > a", function(e) {
+        // Let subitems navigate normally without interfering with accordion behavior
+        e.stopPropagation();
+    });
+
+    // Make category title clicks trigger the same accordion behavior AND navigate to the page
+    $("#side-nav").on("click", "> ul > li > a", function(e) {
+        var $link = $(this);
+        var $dropdown = $link.find(".dropdown");
+        
+        // Only handle links that have a collapsible dropdown caret
+        if ($dropdown.length > 0) {
+            e.preventDefault();
+            
+            // Implement the same accordion behavior as the dropdown click handler
+            var $parentLi = $dropdown.closest('li');
+            var $targetCollapse = $parentLi.find('.collapse').first();
+            
+            // If this dropdown is about to be expanded (currently collapsed)
+            if ($dropdown.hasClass('collapsed')) {
+                // Navigate to the page when opening the collapsible
+                var href = $link.attr('href');
+                if (href) {
+                    window.location.hash = href.substring(1); // Remove leading #
+                }
+                
+                // Close all other open dropdowns at the same level
+                $parentLi.siblings().each(function() {
+                    var $siblingCollapse = $(this).find('.collapse').first();
+                    if ($siblingCollapse.hasClass('in')) {
+                        $siblingCollapse.collapse('hide');
+                        $(this).find('.dropdown').addClass('collapsed');
+                    }
+                });
+                
+                // Open this section
+                $targetCollapse.collapse('show');
+                $dropdown.removeClass('collapsed');
+            } else {
+                // Close this section (no navigation when closing)
+                $targetCollapse.collapse('hide');
+                $dropdown.addClass('collapsed');
+            }
+        }
     });
 
     $("#side-nav").on("shown.bs.collapse", ".collapse", function(e) {
@@ -1093,11 +1453,11 @@ $(function() {
         $(this).hide();
     });
 
-    makeStickyHeader($("#content-header"), $("#content-container"));
     enableExpandCollapseAll();
     versions.init($(".ver-dropdown"), $(".ver-dropdown-container"));
     masteries.init($(".mastery-dropdown"), $(".mastery-dropdown-container"));
     configureImgSize();
+    adjustSidebarLayout();
     $('.tt-dropdown-menu').width($('#content-header .header-tools').width());
 
     // Track Google Analytics as we navigate from one subpage / hash link to another.
@@ -1105,6 +1465,7 @@ $(function() {
     // Really old browsers don't support hashchange.  A plugin is available, but I don't really care right now.
     $(window).on('hashchange', function() {
         _gaq.push(['_trackPageview', location.pathname + location.search + location.hash]);
+        // Don't scroll here - let the route handlers call scrollToId after content loads
     });
 
     // We explicitly do NOT use var, for now, to facilitate inspection in Firebug.

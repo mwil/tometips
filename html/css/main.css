@@ -92,43 +92,101 @@ html, body, #side-nav-container, #content-container
     height: 100%;
 }
 
+/* Override Bootstrap to create flexible sidebar layout */
+#side-nav-container {
+    position: fixed;
+    top: 45px; /* Position directly below the compact fixed header */
+    left: 0;
+    width: auto;
+    min-width: 220px;
+    max-width: 450px;
+    height: calc(100vh - 45px); /* Adjust height to account for compact header */
+    padding: 15px 20px;
+    background: #272b30;
+    z-index: 1020; /* Lower than header but above content */
+    border-right: 1px solid #444;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
 #content-container
 {
-    position: relative;
+    position: fixed;
+    top: 45px; /* Start below compact fixed header */
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 #content
 {
-    padding-right: 160px;
+    padding: 20px; /* Uniform padding on all sides */
+    margin-left: 260px; /* Base margin, will be adjusted by JavaScript */
+    margin-right: 0; /* No right margin to prevent fake sidebar */
+    box-sizing: border-box;
+    width: calc(100% - 260px); /* Calculate width to fill remaining space */
+    max-width: none;
+    min-height: calc(100vh - 45px); /* Ensure content area fills available space */
 }
 
 #sidebar-ad
 {
-    position: absolute;
-    right: 0;
-    top: 120px;
+    display: none; /* Hide the right sidebar ad completely */
 }
 
 .page-header
 {
-    position: relative;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1040; /* Higher than sidebar to ensure it's on top */
+    padding: 5px 15px; /* Minimal padding for compact look */
+    margin: 0; /* Remove all margins from page-header */
+    display: flex;
+    align-items: center; /* Center content vertically */
+    justify-content: space-between; /* Distribute space between elements */
+    height: 45px; /* Smaller height like when it was sticky */
+    background: #272b30; /* Ensure background is always visible */
+    border-bottom: 1px solid #444; /* Add subtle border for separation */
+    box-sizing: border-box;
+    width: 100%; /* Ensure full width */
 }
 
 .page-header h1
 {
-    /* Left-float the header, and remove the margins that won't collapse
-     * because we're left-floating, so that it sits to the left of our navbar.
-     */
-    float: left;
-    margin: 0 20px 0 0;
+    margin: 0;
+    margin-left: 10px; /* Keep h1 left margin as requested */
+    flex-shrink: 0; /* Prevent title from shrinking */
+    font-size: 32px; /* Larger font size as requested */
+}
+
+.page-header .nav-pills
+{
+    flex: 1; /* Take up available space in the center */
+    display: flex;
+    justify-content: center; /* Center the navigation pills */
+    margin: 0 15px; /* Add some space on sides */
+}
+
+.page-header .nav-pills li
+{
+    margin: 0 4px; /* Reduced margin between nav items */
+}
+
+.page-header .nav-pills li a
+{
+    padding: 6px 10px; /* 6px top/bottom, 10px left/right for better look */
 }
 
 .header-tools
 {
-    position: absolute;
-    right: 0;
-    bottom: 0;
-    padding-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Space between tools */
+    flex-shrink: 0; /* Prevent tools from shrinking */
 }
 
 /* Give header fields the same size.
@@ -163,52 +221,60 @@ html, body, #side-nav-container, #content-container
     margin-right: 5px;
 }
 
-.sticky
-{
-    position: absolute;
-    z-index: 9999;
-    /* left and right are duplicated from Bootstrap's columns' padding */
-    left: 15px;
-    right: 15px;
-}
-
-.sticky, .sticky h1
-{
-    margin-top: 0;
-    margin-bottom: 0;
-
-    /* Copied from page theme.  TODO: Cleaner solution available? */
-    background: #272b30;
-}
+/* Removed old sticky header styles - header is now always fixed */
 
 /* Make anchors show below the sticky header.  See http://stackoverflow.com/a/13184714/25507 */
 a.anchor
 {
     display: block;
     position: relative;
-    top: -160px;
     visibility: hidden;
+    /* Remove fixed top offset - now calculated dynamically in JavaScript */
 }
 
-#side-nav-container, #content-container
-{
-    overflow: scroll;
+/* Removed duplicate overflow rules - already defined above */
+
+#side-nav {
+    width: 100%;
+    overflow-x: hidden;
+}
+
+#side-nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+#side-nav ul li {
+    width: 100%;
 }
 
 #side-nav a {
     text-overflow: ellipsis;
     white-space: nowrap;
+    font-size: 16px;
+    display: block;
 }
 
+/* Top-level navigation items (expandable dropdowns) */
+#side-nav > ul > li > a {
+    font-size: 18px;
+    font-weight: bold;
+    padding: 12px 15px;
+}
+
+/* Second-level navigation items (nested under dropdowns) */
 #side-nav > ul > li > ul > li > a {
-    padding: 0 0 0 30px;
+    padding: 0 15px 0 40px;
+    font-size: 16px;
+    line-height: 1.4; /* Ensure readable line height without padding */
 }
 
 #side-nav .dropdown:before {
     font-family: "FontAwesome";
-    font-size: 10px;
+    font-size: 14px;
     content: "\f078";
-    padding-right: 5px;
+    padding-right: 8px;
     width: 1.28571429em;    /* copied from fa-fw class */
     display: inline-block;
 }
@@ -219,9 +285,9 @@ a.anchor
 
 #side-nav .no-dropdown:before {
     font-family: "FontAwesome";
-    font-size: 10px;
+    font-size: 14px;
     content: "\00a0";       /* Unicode non-breaking space - http://stackoverflow.com/a/16552398/25507 */
-    padding-right: 5px;
+    padding-right: 8px;
     width: 1.28571429em;    /* copied from fa-fw class */
     display: inline-block;
 }
@@ -651,6 +717,41 @@ table.old-new td {
 }
 
 /* ==========================================================================
+   Custom Scrollbar Styles
+   ========================================================================== */
+
+/* Webkit browsers (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background: #1a1d20;
+    border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #444851;
+    border-radius: 6px;
+    border: 2px solid #1a1d20;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555b66;
+}
+
+::-webkit-scrollbar-corner {
+    background: #1a1d20;
+}
+
+/* Firefox */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: #444851 #1a1d20;
+}
+
+/* ==========================================================================
    Simple Talent Popup Styles
    ========================================================================== */
 
@@ -754,16 +855,20 @@ table.old-new td {
     margin: 20px 0 !important;
     align-items: flex-start !important;
     justify-content: flex-start !important;
+    overflow-x: hidden !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
 }
 
 .col-md-4 {
     flex: 0 1 auto !important;
     min-width: auto !important;
-    max-width: none !important;
+    max-width: 100% !important;
     padding: 0 !important;
     margin: 0 !important;
     box-sizing: border-box !important;
     width: auto !important;
+    overflow-x: hidden !important;
 }
 
 
@@ -776,6 +881,8 @@ table.old-new td {
     margin: 0 !important;
     padding: 8px 12px !important;
     table-layout: auto !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box !important;
 }
 
 .talent-tree-row {
@@ -852,12 +959,14 @@ table.old-new td {
 
 .talent-icons-table {
     width: auto !important;
-    max-width: none !important;
+    max-width: 100% !important;
     border-collapse: separate !important;
     border-spacing: 0 !important;
     margin: 0 !important;
     padding: 0 !important;
     table-layout: auto !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box !important;
 }
 
 .talent-row {
@@ -939,6 +1048,123 @@ table.old-new td {
 .col-md-4 > ul > li.spacing-64 {
     margin-bottom: 45px !important;
     padding-bottom: 20px !important;
+}
+
+/* Make header tool buttons bigger */
+.expand-all, .collapse-all {
+    font-size: 20px;
+    padding: 8px;
+    margin: 0 4px;
+    cursor: pointer;
+    background-color: #333;
+    color: white;
+    border-radius: 3px;
+}
+
+.expand-all:hover, .collapse-all:hover {
+    background-color: #555;
+}
+
+.expand-all:before {
+    font-family: "FontAwesome";
+    content: "\f0fe";
+}
+
+.collapse-all:before {
+    font-family: "FontAwesome"; 
+    content: "\f146";
+}
+
+.settings-dropdown {
+    font-size: 20px !important;
+    padding: 8px;
+    background-color: #333 !important;
+    color: white !important;
+    border-radius: 3px;
+}
+
+.settings-dropdown:hover {
+    background-color: #555 !important;
+}
+
+/* Style mastery dropdown to match theme */
+.mastery-dropdown {
+    background-color: #333 !important;
+    color: white !important;
+    border: 1px solid #555 !important;
+    border-radius: 3px !important;
+    padding: 6px 8px !important;
+    font-size: 14px !important;
+}
+
+.mastery-dropdown:focus {
+    background-color: #444 !important;
+    border-color: #777 !important;
+    outline: none !important;
+}
+
+.mastery-dropdown option {
+    background-color: #333 !important;
+    color: white !important;
+}
+
+/* Style search container and box to match theme */
+.search-container {
+    position: relative;
+    display: inline-block;
+}
+
+.typeahead {
+    background-color: #333 !important;
+    color: white !important;
+    border: 1px solid #555 !important;
+    border-radius: 3px !important;
+    padding: 8px 30px 8px 12px !important;
+    font-size: 14px !important;
+}
+
+.typeahead:focus {
+    background-color: #444 !important;
+    border-color: #777 !important;
+    outline: none !important;
+    box-shadow: 0 0 5px rgba(255,255,255,0.2) !important;
+}
+
+.typeahead::placeholder {
+    color: #bbb !important;
+}
+
+.search-clear {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #bbb;
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+    display: none;
+}
+
+.search-clear:hover {
+    color: white;
+}
+
+.search-container:has(.typeahead:not(:placeholder-shown)) .search-clear,
+.search-container.has-content .search-clear {
+    display: block;
+}
+
+/* Manual highlighting for typeahead suggestions */
+.tt-suggestion.manual-highlight,
+.tt-suggestion.tt-cursor {
+    background-color: #337ab7 !important;
+    color: white !important;
+}
+
+.tt-suggestion.manual-highlight a,
+.tt-suggestion.tt-cursor a {
+    color: white !important;
 }
 
 

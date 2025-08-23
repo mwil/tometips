@@ -838,7 +838,9 @@ for i,mastery in ipairs(masteries) do
                 local type_name = cat_k .. '/' .. type_v.name
                 talents_types_json[#talents_types_json+1] = { name=type_name, desc=type_v.description, href='talents/'..type_v.type }
                 for talent_i, talent_v in ipairs(type_v.talents) do
-                    talents_json[#talents_json+1] = { name=talent_v.name, desc=("%s %i"):format(talent_v.type[1], talent_v.type[2]), href='talents/'..talent_v.type[1] }
+                    -- Generate talent ID using same logic as JavaScript toHtmlId function
+                    local talent_id = talent_v.name:lower():gsub(":", "_"):gsub("'", "_"):gsub("/", "_"):gsub(" ", "_")
+                    talents_json[#talents_json+1] = { name=talent_v.name, desc=("%s %i"):format(talent_v.type[1], talent_v.type[2]), href='talents/'..talent_v.type[1]..'/'..talent_id }
                 end
             end
         end

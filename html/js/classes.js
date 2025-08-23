@@ -67,32 +67,13 @@ function listClasses(tome, cls) {
     return Handlebars.templates.class(classData);
 }
 
-function fillClassTalents(tome, cls) {
+function fillClassTalents(tome, cls, callback) {
     var data = getData();
     var subclasses = data.classes.classes_by_id[cls].subclass_list,
         load_talents = {};
 
     // Setup talent modal handlers immediately
     setupTalentModalHandlers();
-    
-    // Set up handlers after a delay to ensure they stick
-    setTimeout(function() {
-        setupTalentModalHandlers();
-        
-        // Simple direct click handler
-        $('.individual-talent-link').off('click').on('click', function(e) {
-            e.preventDefault();
-            
-            var $link = $(this);
-            var talentId = $link.data('talent-id');
-            var talentType = $link.data('talent-type');
-            var talentName = $link.data('talent-name');
-            
-            showSimpleTalentPopup(talentId, talentType, talentName);
-            
-            return false;
-        });
-    }, 1000);
 
     function list_class_talents(value, key, list) {
         var category = key.split(/ ?\/ ?/)[0];
@@ -103,6 +84,44 @@ function fillClassTalents(tome, cls) {
     for (var i = 0; i < subclasses.length; i++) {
         _.each(subclasses[i].talents_types_class, list_class_talents);
         _.each(subclasses[i].talents_types_generic, list_class_talents);
+    }
+
+    var categories = _.keys(load_talents);
+    var completed = 0;
+    
+    function checkComplete() {
+        completed++;
+        if (completed >= categories.length) {
+            // Set up handlers after all content is loaded
+            setupTalentModalHandlers();
+            
+            // Simple direct click handler for individual talent links
+            $('.individual-talent-link').off('click').on('click', function(e) {
+                e.preventDefault();
+                
+                var $link = $(this);
+                var talentId = $link.data('talent-id');
+                var talentType = $link.data('talent-type');
+                var talentName = $link.data('talent-name');
+                
+                showSimpleTalentPopup(talentId, talentType, talentName);
+                
+                return false;
+            });
+            
+            if (callback) {
+                callback();
+            }
+        }
+    }
+
+    if (categories.length === 0) {
+        // Set up handlers even when there are no categories
+        setupTalentModalHandlers();
+        if (callback) {
+            callback();
+        }
+        return;
     }
 
     _.each(load_talents, function(talents, category, list) {
@@ -131,6 +150,7 @@ function fillClassTalents(tome, cls) {
 
             markupHintLinks();
             setupTalentModalHandlers();
+            checkComplete();
         });
     });
 }

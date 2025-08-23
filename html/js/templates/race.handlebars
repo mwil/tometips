@@ -14,7 +14,7 @@
         <div class="race-desc well">
             <div class="race-images">
                 {{#choose images}}
-                    <img src="img/{{file}}" width="{{#if width}}{{width}}{{else}}64{{/if}}" height="{{#if height}}{{height}}{{else}}64{{/if}}"/>
+                    <img src="img/{{file}}" width="{{#if width}}{{width}}{{else}}96{{/if}}" height="{{#if height}}{{height}}{{else}}96{{/if}}"/>
                 {{/choose}}
             </div>
             {{#if locked_desc}}<p class="flavor">{{locked_desc}}</p>{{/if}}
@@ -51,6 +51,9 @@
                     {{#if copy.no_breath}}{{textStat "Special" "No need to breathe"}}{{/if}}
                 </dl>
             </div>
+        </div>
+        <div class="class-detail-container container-fluid">
+            {{$ 'class_talents' talents_types_sorted=race_talents_sorted talents_types=race_talents title='Race Talents' css_class='race-talents' }}
         </div>
     {{/each}}
 </div>
