@@ -292,6 +292,7 @@ a.anchor
     display: inline-block;
 }
 
+.ver-dropdown-container,
 .mastery-dropdown-container {
     padding-right: 1em;
 }
@@ -524,6 +525,61 @@ table.old-new td {
 
 .stat-penalty {
     color: #a00000;
+}
+
+/* Horizontal stats table */
+.stats-table {
+    width: 100%;
+    margin-bottom: 20px;
+    background-color: transparent;
+    border-collapse: collapse;
+}
+
+.stats-table th,
+.stats-table td {
+    padding: 8px 12px;
+    text-align: center;
+    vertical-align: middle;
+    border: 1px solid #3e444c;
+}
+
+.stats-table th {
+    background-color: #2e3338;
+    font-weight: 500;
+    font-size: 13px;
+    color: #c8c8c8;
+}
+
+.stats-table td {
+    background-color: #1c1e22;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.stats-table .stat-bonus,
+.stats-table .stat-penalty,
+.stats-table .stat-neutral {
+    font-weight: bold;
+}
+
+/* Reduce excessive margins on classes page */
+.class-desc.well {
+    margin-bottom: 5px;
+}
+
+.class-detail-container h4 {
+    margin-top: 0px;
+    margin-bottom: 5px;
+}
+
+.class-detail-container h3 {
+    margin-top: 8px;
+    margin-bottom: 5px;
+}
+
+/* Also reduce stats table margin since it already has internal spacing */
+.stats-table {
+    margin-bottom: 5px;
 }
 
 /* ==========================================================================
@@ -852,7 +908,7 @@ table.old-new td {
     display: flex !important;
     flex-wrap: wrap !important;
     gap: 30px !important;
-    margin: 20px 0 !important;
+    margin: 0 !important;
     align-items: flex-start !important;
     justify-content: flex-start !important;
     overflow-x: hidden !important;
@@ -1088,6 +1144,7 @@ table.old-new td {
 }
 
 /* Style mastery dropdown to match theme */
+.ver-dropdown,
 .mastery-dropdown {
     background-color: #333 !important;
     color: white !important;
@@ -1097,12 +1154,14 @@ table.old-new td {
     font-size: 14px !important;
 }
 
+.ver-dropdown:focus,
 .mastery-dropdown:focus {
     background-color: #444 !important;
     border-color: #777 !important;
     outline: none !important;
 }
 
+.ver-dropdown option,
 .mastery-dropdown option {
     background-color: #333 !important;
     color: white !important;
@@ -1165,6 +1224,129 @@ table.old-new td {
 .tt-suggestion.manual-highlight a,
 .tt-suggestion.tt-cursor a {
     color: white !important;
+}
+
+/* ========================================================================== 
+   Improved Talent Popup Styles
+   ========================================================================== */
+
+/* Wider border for talent popup */
+.talent-popup .modal-content {
+    border: 4px solid #ddd;
+    border-radius: 8px;
+}
+
+/* Main layout container with flexbox for proper alignment */
+.talent-popup-layout {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+/* Left column with image and description */
+.talent-image-section {
+    flex: 0 0 auto;
+    min-width: 100px;
+    max-width: 200px;
+}
+
+.talent-image-section img {
+    display: block;
+    margin-bottom: 15px;
+    border: 2px solid #ddd;
+    border-radius: 4px;
+}
+
+.talent-description {
+    font-size: 14px;
+    line-height: 1.4;
+    color: #555;
+    margin-top: 10px;
+}
+
+.talent-description p {
+    margin-bottom: 10px;
+}
+
+.talent-description p:last-child {
+    margin-bottom: 0;
+}
+
+/* Right column with stats table */
+.talent-stats-section {
+    flex: 1 1 auto;
+    min-width: 0; /* Allow shrinking */
+}
+
+/* Improved table styling that doesn't float */
+.talent-stats-table {
+    margin: 0;
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.talent-stats-table dt {
+    font-weight: bold;
+    color: #333;
+    background-color: #f8f9fa;
+    padding: 8px 12px;
+    border: 1px solid #dee2e6;
+    border-bottom: none;
+    margin: 0;
+    clear: both;
+    float: none !important; /* Override any existing float */
+    width: auto !important; /* Override any existing width */
+}
+
+.talent-stats-table dd {
+    padding: 8px 12px;
+    border: 1px solid #dee2e6;
+    border-top: none;
+    margin: 0 0 10px 0;
+    background-color: white;
+    min-height: 20px;
+}
+
+.talent-stats-table dt:first-child {
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+}
+
+.talent-stats-table dd:last-child {
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+    margin-bottom: 0;
+}
+
+/* Individual talents subtree section */
+.talent-subtree-section {
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 2px solid #eee;
+}
+
+.talent-subtree-section h5 {
+    margin-bottom: 15px;
+    font-weight: bold;
+    color: #333;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .talent-popup-layout {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .talent-image-section {
+        max-width: none;
+        text-align: center;
+    }
+    
+    .talent-image-section img {
+        margin: 0 auto 15px auto;
+    }
 }
 
 

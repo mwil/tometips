@@ -1,7 +1,7 @@
 {{! For a class, shows the talent types that it can learn. }}
 {{! Note the duplicated format talent_classes.handlebars. }}
 {{#if talents_types_sorted}}
-    <div class="col-md-4">
+    <div class="col-md-6">
         <h4>{{title}}</h4>
         <table class="talent-trees-table">
             <tbody>
@@ -22,7 +22,7 @@
     </div>
 {{else if talents_types}}
     {{! Fallback to original behavior if sorted version not available }}
-    <div class="col-md-4">
+    <div class="col-md-6">
         <h4>{{title}}</h4>
         <table class="talent-trees-table">
             <tbody>

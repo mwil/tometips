@@ -24,22 +24,39 @@
             </div>
         </div>
         <div class="class-detail-container container-fluid">
-            <div class="col-md-4">
+            <div class="col-md-12">
                 <h4>Stats</h4>
-                <dl class="dl-horizontal stats">
-                    {{stat "Strength" stats.str}}
-                    {{stat "Dexterity" stats.dex}}
-                    {{stat "Constitution" stats.con}}
-                    {{stat "Magic" stats.mag}}
-                    {{stat "Willpower" stats.wil}}
-                    {{stat "Cunning" stats.cun}}
-                    {{stat "Life per level" copy_add.life_rating}}
-                </dl>
+                <table class="stats-table">
+                    <thead>
+                        <tr>
+                            <th>Strength</th>
+                            <th>Dexterity</th>
+                            <th>Constitution</th>
+                            <th>Magic</th>
+                            <th>Willpower</th>
+                            <th>Cunning</th>
+                            <th>Life per level</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>{{{statValue stats.str}}}</td>
+                            <td>{{{statValue stats.dex}}}</td>
+                            <td>{{{statValue stats.con}}}</td>
+                            <td>{{{statValue stats.mag}}}</td>
+                            <td>{{{statValue stats.wil}}}</td>
+                            <td>{{{statValue stats.cun}}}</td>
+                            <td>{{{statValue copy_add.life_rating}}}</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
         <div class="class-detail-container container-fluid">
-            {{$ 'class_talents' talents_types_sorted=talents_types_class_sorted talents_types=talents_types_class title='Class Talents' css_class='class-talents' }}
-            {{$ 'class_talents' talents_types_sorted=talents_types_generic_sorted talents_types=talents_types_generic title='Generic Talents' css_class='generic-talents' }}
+            <div class="row">
+                {{$ 'class_talents' talents_types_sorted=talents_types_class_sorted talents_types=talents_types_class title='Class Talents' css_class='class-talents' }}
+                {{$ 'class_talents' talents_types_sorted=talents_types_generic_sorted talents_types=talents_types_generic title='Generic Talents' css_class='generic-talents' }}
+            </div>
         </div>
     {{/each}}
 </div>

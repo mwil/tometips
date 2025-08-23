@@ -133,7 +133,7 @@ function fillClassTalents(tome, cls, callback) {
                 // Individual talents within each tree maintain their original order
                 // The real "locked" concept applies to talent trees, not individual talents
                 
-                var talent_html = Handlebars.templates.class_talents_detail(talent_details);
+                var talent_html = Handlebars.partials.class_talents_detail(talent_details);
                 var $container = $('.class-talents-detail[data-talent-type="' + toHtmlId(this_type) + '"]');
                 $container.html(talent_html);
                 

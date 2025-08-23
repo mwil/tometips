@@ -222,7 +222,7 @@ function fillRaceTalents(tome, r, callback) {
                 
                 if (talent_details) {
                     // Generate the talent HTML using the same template as classes
-                    var talent_html = Handlebars.templates.class_talents_detail(talent_details);
+                    var talent_html = Handlebars.partials.class_talents_detail(talent_details);
                     var $container = $('.class-talents-detail[data-talent-type="' + toHtmlId(raceTalentType) + '"]');
                     $container.html(talent_html);
                     

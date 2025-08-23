@@ -367,6 +367,21 @@ Handlebars.registerHelper('percentStat', function(desc, value, mult, compare) {
     return stat(desc, value, percent, mult, compare);
 });
 
+Handlebars.registerHelper('statValue', function(value) {
+    value = value || 0;
+    var internal_value = value,
+        display = value >= 0 ? '+' + value : value,
+        compare = 0;
+    
+    if (internal_value == compare) {
+        return new Handlebars.SafeString('<span class="stat-neutral">' + display + '</span>');
+    } else if (internal_value > compare) {
+        return new Handlebars.SafeString('<span class="stat-bonus">' + display + '</span>');
+    } else {
+        return new Handlebars.SafeString('<span class="stat-penalty">' + display + '</span>');
+    }
+});
+
 Handlebars.registerHelper('textStat', function(desc, value) {
     return new Handlebars.SafeString('<dt>' + desc + ':</dt><dd><span class="stat-neutral">' + value + '</span></dd>');
 });
@@ -598,21 +613,16 @@ var versions = (function() {
 
         // Lists available versions in the given <option> element(s).
         list: function($el, $container) {
-            var html;
-            if (versions.ALL.length < 2) {
-                ($container || $el).hide();
-            } else {
-                html = '';
-                for (var i = 0; i < versions.ALL.length; i++) {
-                    html += '<option value="' + versions.ALL[i] + '"';
-                    if (versions.ALL[i] == versions.DEFAULT) {
-                        html += ' selected';
-                    }
-                    html += '>' + versions.name(versions.ALL[i]) + '</option>';
+            var html = '';
+            for (var i = 0; i < versions.ALL.length; i++) {
+                html += '<option value="' + versions.ALL[i] + '"';
+                if (versions.ALL[i] == versions.DEFAULT) {
+                    html += ' selected';
                 }
-                ($container || $el).removeClass("hidden").show();
-                $el.html(html);
+                html += '>' + versions.name(versions.ALL[i]) + '</option>';
             }
+            ($container || $el).removeClass("hidden").show();
+            $el.html(html);
         },
 
         // Listens for version change events in the given <option> element(s).
