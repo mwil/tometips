@@ -1,0 +1,35 @@
+TODO:
+- on the classes page, there are talent tree links like Corruption/Bone. Currently they navigate to #, but they could go to the actual talent. 
+- Inside a talent popup, we could link the to talent from the heading.
+- For Uber talents (class evulations), we need to get rid of the #Color# tags and fix the descriptions by analysing the code and see that should go into to %s placeholder.
+- Check for other paths that could open several collapsibles in the #talents page
+
+Improve search list:
+- Clear it more (after accepted solution)
+- Highlight the first item
+- On reactivate, directly update the search when you enter the textbox again
+
+- Cannot link to DLC content source code, it is not available online
+
+
+Item List:
+- Identify list of common characteristics of items we want to display
+- Identify item categories for subpages
+- Count how many items we have per category
+- (Check that the descriptions are not dependent on running functions to calculate values)
+- Prepare full list of items in JSON with relevant features (skip dynamic content like functions)
+- Prepare item icons
+- Make a sample page for a single item
+- Create subpages
+- Read JSON and display information for all items
+
+- Implement navigation
+- Implement search
+- Implement <View Source> by remembering line position in the cloned code
+
+
+
+
+# Misc
+- There is a prodigy that gives the following talents, would be nice to link them?
+-- Anomaly Rearrange, Anomaly Temporal Storm, Anomaly Flawed Design, Anomaly Gravity Pull and Anomaly Wormhole

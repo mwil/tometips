@@ -14,15 +14,19 @@ if [ "$1" = "json" ]; then
 elif [ "$1" = "all" ] || [ "$1" = "html" ]; then
     echo "Running full build (JSON + HTML + images)..."
     make all
+elif [ "$1" = "items" ]; then
+    echo "Preparing item images..."
+    make item-img
 elif [ "$1" = "serve" ]; then
     echo "Starting local server on http://localhost:8000"
     echo "Note: Use Ctrl+F5 or Cmd+Shift+R to force refresh and bypass cache"
     cd html && python3 -m http.server 8000
 else
-    echo "Usage: $0 [json|all|html|serve]"
+    echo "Usage: $0 [json|all|html|items|serve]"
     echo "  json  - Generate spoiler JSON files only"
     echo "  all   - Run full build including HTML generation and images"  
     echo "  html  - Same as 'all'"
+    echo "  items - Prepare item images only"
     echo "  serve - Start local web server to view the generated site"
     exit 1
 fi

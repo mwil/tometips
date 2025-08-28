@@ -328,11 +328,19 @@ function showSimpleTalentPopup(talentId, talentType, talentName) {
                 hideSimpleTalentPopup();
             }
         });
+        
+        // Close popup when talent link is clicked
+        $(document).on('click', '.talent-popup-link', function() {
+            hideSimpleTalentPopup();
+        });
     }
     
     // Show popup
     $('#talent-popup-overlay').show();
-    $('#talent-popup-title').text(talentName);
+    // Create link to the specific talent page - format matches template: #talents/type/talent_id_html_encoded
+    // Use toUnsafeHtmlId for talent type and toHtmlId for talent ID (matches template logic)
+    var talentUrl = '#talents/' + toUnsafeHtmlId(talentType) + '/' + toHtmlId(talentId);
+    $('#talent-popup-title').html('<a href="' + talentUrl + '" class="talent-popup-link">' + talentName + '</a>');
     $('#talent-popup-content').html('<p><i class="fa fa-spinner fa-spin"></i> Loading talent data...</p>');
     
     // Load talent data

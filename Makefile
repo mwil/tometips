@@ -46,6 +46,90 @@ changes.mk: Makefile scripts/make-changes-mk.sh
 # Convert and publish images.
 img: t-engine4 dlc
 	scripts/prepare-img.sh
+	$(MAKE) item-img
+
+# Convert and publish item images.
+item-img: t-engine4 dlc
+	mkdir -p html/img/object/{96,64,48,32}
+	mkdir -p html/img/object/artifact/{96,64,48,32}
+	@# Copy object images from main ToME installation
+	@for gfx in t-engine4/game/modules/tome/data/gfx/shockbolt/object t-engine4/game/modules/tome/data/gfx/mushroom/object; do \
+		if [ -d "$$gfx" ]; then \
+			for img in $$gfx/*.png; do \
+				if [ -f "$$img" ]; then \
+					newimg=html/img/object/64/$${img##*/}; \
+					if [ $$img -nt $$newimg ]; then \
+						echo "Converting $$newimg..."; \
+						pngcrush -q -rem allb -reduce $$img $$newimg; \
+					fi; \
+				fi; \
+			done; \
+			if [ -d "$$gfx/artifact" ]; then \
+				for img in $$gfx/artifact/*.png; do \
+					if [ -f "$$img" ]; then \
+						newimg=html/img/object/artifact/64/$${img##*/}; \
+						if [ $$img -nt $$newimg ]; then \
+							echo "Converting $$newimg..."; \
+							pngcrush -q -rem allb -reduce $$img $$newimg; \
+						fi; \
+					fi; \
+				done; \
+			fi; \
+		fi; \
+	done
+	@# Copy from DLC directories
+	@for gfx in dlc/*/overload/data/gfx/*/object; do \
+		if [ -d "$$gfx" ]; then \
+			for img in $$gfx/*.png; do \
+				if [ -f "$$img" ]; then \
+					newimg=html/img/object/64/$${img##*/}; \
+					if [ $$img -nt $$newimg ]; then \
+						echo "Converting DLC $$newimg..."; \
+						pngcrush -q -rem allb -reduce $$img $$newimg; \
+					fi; \
+				fi; \
+			done; \
+			if [ -d "$$gfx/artifact" ]; then \
+				for img in $$gfx/artifact/*.png; do \
+					if [ -f "$$img" ]; then \
+						newimg=html/img/object/artifact/64/$${img##*/}; \
+						if [ $$img -nt $$newimg ]; then \
+							echo "Converting DLC artifact $$newimg..."; \
+							pngcrush -q -rem allb -reduce $$img $$newimg; \
+						fi; \
+					fi; \
+				done; \
+			fi; \
+		fi; \
+	done
+	@# Create smaller/larger sizes for object images
+	@for size in 32 48 96; do \
+		for img in html/img/object/64/*.png; do \
+			if [ -f "$$img" ]; then \
+				newimg=$${img/64/$$size}; \
+				if [ $$img -nt $$newimg ]; then \
+					echo "Converting $$newimg..."; \
+					convert -resize $${size}x$${size} $$img tmp.png; \
+					pngcrush -q -rem allb -reduce tmp.png $$newimg; \
+					rm -f tmp.png; \
+				fi; \
+			fi; \
+		done; \
+	done
+	@# Create smaller/larger sizes for artifact images
+	@for size in 32 48 96; do \
+		for img in html/img/object/artifact/64/*.png; do \
+			if [ -f "$$img" ]; then \
+				newimg=$${img/64/$$size}; \
+				if [ $$img -nt $$newimg ]; then \
+					echo "Converting $$newimg..."; \
+					convert -resize $${size}x$${size} $$img tmp.png; \
+					pngcrush -q -rem allb -reduce tmp.png $$newimg; \
+					rm -f tmp.png; \
+				fi; \
+			fi; \
+		done; \
+	done
 
 # Pretty-prints each of the JSON files.
 pretty: html/data/$(VERSION)

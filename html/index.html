@@ -13,13 +13,13 @@
         <!-- FIXME: Place favicon.ico and apple-touch-icon.png in the root directory -->
 
         <link rel="stylesheet" href="css/normalize.css">
-        <link rel="stylesheet" href="css/bootstrap.min.css">
+        <link rel="stylesheet" href="css/bootstrap-5.3.2.min.css">
 
         <!--<link rel="stylesheet" href="css/font-awesome.min.css">-->
-        <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+        <link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
 
         <link rel="stylesheet" href="css/main.css">
-        <script src="js/vendor/modernizr-2.6.2.min.js"></script>
+        <script src="js/vendor/modernizr-3.12.0.min.js"></script>
 
         <script type='text/javascript'>
           var googletag = googletag || {};
@@ -55,13 +55,14 @@
         </div>
 
         <div id="content-container">
-            <div id="content-header" class="page-header">
+            <div id="content-header" class="pb-2 mb-3 border-bottom">
                 <h1><a href="#">ToME Tips</a></h1>
 
                 <ul class="nav nav-pills">
-                    <li><a data-base-href="#races">Races</a></li>
-                    <li><a data-base-href="#classes">Classes</a></li>
-                    <li><a data-base-href="#talents">Talents</a></li>
+                    <li class="nav-item"><a class="nav-link" data-base-href="#races">Races</a></li>
+                    <li class="nav-item"><a class="nav-link" data-base-href="#classes">Classes</a></li>
+                    <li class="nav-item"><a class="nav-link" data-base-href="#talents">Talents</a></li>
+                    <li class="nav-item"><a class="nav-link" data-base-href="#items">Items</a></li>
                 </ul>
 
                 <div class="header-tools">
@@ -83,11 +84,11 @@
                     <span class="expand-all" data-target="#content"></span>
                     <span class="collapse-all" data-target="#content"></span>
                     <span class="dropdown">
-                        <span data-toggle="dropdown" href="#" title="Settings" class="settings-dropdown fa fa-cog clickable"><b class="caret"></b></span>
-                        <ul class="dropdown-menu pull-right" role="menu">
-                            <li><a class="dropdown-option option-img-size" data-img-size="32">Small icons</a></li>
-                            <li><a class="dropdown-option option-img-size" data-img-size="48">Medium icons</a></li>
-                            <li><a class="dropdown-option option-img-size" data-img-size="64">Large icons</a></li>
+                        <span data-bs-toggle="dropdown" href="#" title="Settings" class="settings-dropdown fa fa-cog clickable"><b class="caret"></b></span>
+                        <ul class="dropdown-menu dropdown-menu-end" role="menu">
+                            <li><a class="dropdown-item dropdown-option option-img-size" data-img-size="32">Small icons</a></li>
+                            <li><a class="dropdown-item dropdown-option option-img-size" data-img-size="48">Medium icons</a></li>
+                            <li><a class="dropdown-item dropdown-option option-img-size" data-img-size="64">Large icons</a></li>
                         </ul>
                     </span>
                 </div>
@@ -221,20 +222,20 @@
             </dl>
         </div>
 
-        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-        <script>window.jQuery || document.write('<script src="js/vendor/jquery-1.11.1.min.js"><\/script>')</script>
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+        <script>window.jQuery || document.write('<script src="js/vendor/jquery-3.7.1.min.js"><\/script>')</script>
 
-        <script src="js/vendor/underscore-1.4.4.min.js"></script>
+        <script src="js/vendor/underscore-1.13.6.min.js"></script>
         <script src="js/vendor/handlebars.runtime.min.js"></script>
 
-        <!--<script src="js/vendor/bootstrap.min.js"></script>-->
-        <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+        <script src="js/vendor/popper.min.js"></script>
+        <script src="js/vendor/bootstrap-5.3.2.min.js"></script>
 
         <script src="js/vendor/signals.min.js"></script>
         <script src="js/vendor/crossroads.min.js"></script>
         <script src="js/vendor/hasher.min.js"></script>
 
-        <script src="js/vendor/jquery.cookie.js"></script>
+        <script src="js/vendor/js-cookie.min.js"></script>
         <script src="js/vendor/typeahead.bundle.js"></script>
 
         <script src="js/plugins.js"></script>
@@ -247,8 +248,125 @@
         <script src="js/talents.js"></script>
         <script src="js/classes.js"></script>
         <script src="js/races.js"></script>
+        <script src="js/items.js"></script>
 
         <script>
+            console.log('BASIC DEBUG TEST - Script loading...');
+            
+            // Bootstrap 5 compatibility: Convert data-toggle to data-bs-toggle and fix accordion behavior
+            function convertBootstrapAttributes() {
+                try {
+                    // Convert data-toggle to data-bs-toggle
+                    document.querySelectorAll('[data-toggle]:not([data-bs-toggle])').forEach(function(element) {
+                        var toggle = element.getAttribute('data-toggle');
+                        element.setAttribute('data-bs-toggle', toggle);
+                        
+                        // For collapse panels, ensure proper Bootstrap 5 behavior
+                        if (toggle === 'collapse') {
+                            var target = element.getAttribute('data-target');
+                            if (target && target.startsWith('#')) {
+                                element.setAttribute('data-bs-target', target);
+                                
+                                // Explicitly ensure talent panels are INDEPENDENT (no accordion behavior)
+                                var isTalentPanel = element.closest('.panel-title') !== null;
+                                if (isTalentPanel) {
+                                    // Remove any accordion behavior for talent panels
+                                    element.removeAttribute('data-bs-parent');
+                                    element.removeAttribute('data-parent');
+                                    
+                                    // Find the target collapse element and ensure it's independent
+                                    var targetElement = document.querySelector(target);
+                                    if (targetElement) {
+                                        targetElement.removeAttribute('data-bs-parent');
+                                        targetElement.removeAttribute('data-parent');
+                                    }
+                                }
+                            }
+                        }
+                    });
+                    
+                    // Convert data-target to data-bs-target
+                    document.querySelectorAll('[data-target]:not([data-bs-target])').forEach(function(element) {
+                        var target = element.getAttribute('data-target');
+                        if (target && target.startsWith('#')) {
+                            element.setAttribute('data-bs-target', target);
+                        }
+                    });
+                    
+                    // Convert data-dismiss to data-bs-dismiss
+                    document.querySelectorAll('[data-dismiss]:not([data-bs-dismiss])').forEach(function(element) {
+                        var dismiss = element.getAttribute('data-dismiss');
+                        element.setAttribute('data-bs-dismiss', dismiss);
+                    });
+                    
+                } catch (e) {
+                    console.log('Bootstrap conversion error:', e);
+                }
+            }
+            
+            // Debug function to understand click behavior
+            function debugTalentClicks() {
+                console.log('DEBUG SETUP TEST - Setting up click handlers...');
+                
+                // Debug ANY click in the content area to see what we're missing
+                $(document).on('click', '#content *', function(e) {
+                    // Only log talent-related elements
+                    if ($(this).hasClass('panel-heading') || $(this).hasClass('panel-title') || $(this).closest('.panel').length > 0) {
+                        console.log('=== CONTENT AREA CLICK ===');
+                        console.log('Element:', this.tagName, this.className || 'no-class');
+                        console.log('Is in panel:', $(this).closest('.panel').length > 0);
+                        console.log('Closest panel-heading:', $(this).closest('.panel-heading').length > 0);
+                        console.log('Is clickable:', $(this).hasClass('clickable'));
+                        
+                        // Don't prevent the event, just log it
+                        e.stopPropagation(); // Prevent multiple logs for the same click
+                    }
+                });
+                
+                // Also check what elements exist after content loads
+                setTimeout(function() {
+                    var panelCount = $('#content .panel').length;
+                    var headingCount = $('#content .panel-heading').length;
+                    var linkCount = $('#content .panel-title a').length;
+                    
+                    console.log('=== ELEMENT COUNT CHECK ===');
+                    console.log('Panels found:', panelCount);
+                    console.log('Panel headings found:', headingCount);
+                    console.log('Panel title links found:', linkCount);
+                    
+                    if (linkCount > 0) {
+                        var firstLink = $('#content .panel-title a').first();
+                        console.log('First link attributes:');
+                        console.log('- data-target:', firstLink.attr('data-target'));
+                        console.log('- data-bs-target:', firstLink.attr('data-bs-target'));
+                        console.log('- data-toggle:', firstLink.attr('data-toggle'));
+                        console.log('- data-bs-toggle:', firstLink.attr('data-bs-toggle'));
+                    }
+                }, 3000); // Wait 3 seconds for content to load
+                
+                console.log('DEBUG SETUP COMPLETE');
+            }
+            
+            // Run conversion on page load and after content updates  
+            document.addEventListener('DOMContentLoaded', function() {
+                console.log('DOM LOADED TEST - DOMContentLoaded fired');
+                convertBootstrapAttributes();
+            });
+            
+            // Also run periodically to catch dynamically loaded content
+            // DISABLED: This was causing talent panels to auto-expand every 2 seconds
+            // setInterval(convertBootstrapAttributes, 2000);
+            
+            // Run after jQuery ready
+            $(document).ready(function() {
+                console.log('JQUERY READY TEST - jQuery document ready fired');
+                debugTalentClicks();
+                // DISABLED: These repeated calls were causing talent panels to auto-expand
+                // setTimeout(convertBootstrapAttributes, 100);
+                // setTimeout(convertBootstrapAttributes, 500);
+                // setTimeout(convertBootstrapAttributes, 1000);
+            });
+            
             var _gaq=[['_setAccount','UA-7101995-3'],['_trackPageview']];
             (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
             g.src='//www.google-analytics.com/ga.js';

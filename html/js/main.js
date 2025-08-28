@@ -120,14 +120,34 @@ function adjustSidebarLayout() {
 
 function enableExpandCollapseAll()
 {
-    $(".expand-all").addClass('fa fa-toggle-down')
+    $(".expand-all").addClass('fa fa-caret-down')
         .attr('title', 'Expand All');
-    $(".collapse-all").addClass('fa fa-toggle-up')
+    $(".collapse-all").addClass('fa fa-caret-up')
         .attr('title', 'Collapse All');
     $(".expand-all, .collapse-all").addClass('clickable')
         .click(function() {
+            console.log('=== MAIN.JS EXPAND/COLLAPSE CLICKED ===');
+            console.log('Element:', this.className);
+            console.log('Is expand-all:', $(this).hasClass('expand-all'));
+            console.log('Target:', $(this).attr('data-target'));
+            
             $($(this).attr('data-target')).find('.collapse').collapse($(this).hasClass('expand-all') ? 'show' : 'hide');
         });
+}
+
+/**Enforces sidebar accordion behavior by closing other open nav collapsibles */
+function enforceSidebarAccordion(targetNavId) {
+    if (!targetNavId.startsWith('#nav-')) return;
+    
+    var targetId = targetNavId.substring(1);
+    
+    // Close all other sidebar nav collapsibles
+    $('#side-nav .collapse.show').each(function() {
+        if (this.id !== targetId) {
+            $(this).collapse('hide');
+            $('[data-target="#' + this.id + '"]').addClass('collapsed');
+        }
+    });
 }
 
 function showCollapsed(html_id, disable_transitions)
@@ -148,15 +168,27 @@ function showCollapsed(html_id, disable_transitions)
     // Hack: Update "collapsed" class, since Bootstrap doesn't seem to do it
     // for us (unless, presumably, we use data-parent for full-blown accordion
     // behavior, and I don't really want to do that).
-    $("[data-target=" + html_id + "]").removeClass('collapsed');
+    $("[data-target='" + html_id + "']").removeClass('collapsed');
 }
 
-/**Gets the HTML IDs of currently expanded collapsed items. */
+/**Shows a collapsible with accordion behavior for sidebar navigation */
+function showCollapsedWithAccordion(html_id, disable_transitions) {
+    enforceSidebarAccordion(html_id);
+    showCollapsed(html_id, disable_transitions);
+}
+
+/**Gets the HTML IDs of currently expanded collapsed items. 
+ * Only captures sidebar nav items, not talent panels. */
 function getExpandedIds()
 {
-    return $.map($(".collapse.in"), function(n, i) {
-        return n.id;
-    });
+    return $.map($(".collapse.show"), function(n, i) {
+        // Only capture navigation items (nav-*) and not talent panels (collapse-*)
+        // This prevents talent panels from being auto-restored when clicking tree names
+        if (n.id && n.id.startsWith('nav-')) {
+            return n.id;
+        }
+        return null;
+    }).filter(function(id) { return id !== null; });
 }
 
 function expandIds(id_list, disable_transitions)
@@ -171,9 +203,27 @@ function expandIds(id_list, disable_transitions)
 var prev_expanded = null;
 
 function updateFinished() {
+    console.log('=== UPDATE FINISHED CALLED ===');
+    console.log('prev_expanded:', prev_expanded);
+    
     if (prev_expanded) {
-        expandIds(prev_expanded, true);
+        // Only restore the first nav item to maintain accordion behavior
+        var navItems = prev_expanded.filter(function(id) { return id.startsWith('nav-'); });
+        console.log('Nav items to restore:', navItems);
+        
+        if (navItems.length > 0) {
+            console.log('Restoring nav item:', navItems[0]);
+            showCollapsedWithAccordion('#' + navItems[0], true);
+        }
+        
+        // DO NOT restore talent panel expanded state - let them start collapsed
+        // This prevents clicking tree names from expanding all talent panels
+        // var nonNavItems = prev_expanded.filter(function(id) { return !id.startsWith('nav-'); });
+        // expandIds(nonNavItems, true);
+        
         prev_expanded = null;
+    } else {
+        console.log('No prev_expanded to restore');
     }
 }
 
@@ -226,7 +276,7 @@ function indexByHtmlId(obj, property) {
 /**Marks up inline links to the ToME wiki */
 function markupHintLinks() {
     // TODO: Try FontAwesome instead. I think it might look nicer than glyphicon here.
-    $('.hint-link[target!=_blank]').append(' <span class="fa fa-external-link"></span>')
+    $('.hint-link[target!=_blank]').append(' <span class="fa fa-external-link-alt"></span>')
         .attr('target', '_blank');
 }
 
@@ -294,6 +344,28 @@ Handlebars.registerHelper('toTitleCase', function(context, options) {
 
 Handlebars.registerHelper('toLowerCase', function(context, options) {
     return context.toLowerCase();
+});
+
+Handlebars.registerHelper('capitalize', function(context, options) {
+    if (!context) return '';
+    return context.charAt(0).toUpperCase() + context.slice(1);
+});
+
+Handlebars.registerHelper('itemImagePath', function(imagePath, size, options) {
+    if (!imagePath) return '';
+    size = size || 32;
+    
+    // Transform "object/artifact/acera.png" to "object/artifact/32/acera.png"
+    // or "object/sword.png" to "object/32/sword.png"
+    var parts = imagePath.split('/');
+    if (parts.length >= 2) {
+        // Insert size folder before filename
+        var filename = parts.pop();
+        parts.push(size.toString());
+        parts.push(filename);
+        return parts.join('/');
+    }
+    return imagePath;
 });
 
 Handlebars.registerHelper('toDecimal', function(context, places, options) {
@@ -563,6 +635,7 @@ var versions = (function() {
     // maintain expanded/collapsed state when switching versions.
 
     function onChange() {
+        console.log('=== VERSIONS ONCHANGE CALLED ===');
         $_dropdown.val(versions.current);
 
         // Hack: If version changes, then save what IDs are expanded so
@@ -571,6 +644,7 @@ var versions = (function() {
         // refreshed.  (This is a hack because it ties the versions
         // module too closely to our DOM organization.)
         prev_expanded = getExpandedIds();
+        console.log('Versions onChange - captured prev_expanded:', prev_expanded);
         $("#side-nav").html("");
 
         updateNav();
@@ -659,9 +733,11 @@ var masteries = (function() {
     var $_dropdown;
 
     function onChange() {
+        console.log('=== MASTERIES ONCHANGE CALLED ===');
         $_dropdown.val(masteries.current);
 
         prev_expanded = getExpandedIds();
+        console.log('Masteries onChange - captured prev_expanded:', prev_expanded);
         $("#side-nav").html("");
 
         updateNav();
@@ -795,53 +871,97 @@ function initializeRoutes() {
         }),
 
         talents_category: crossroads.addRoute("talents/{category}:?query:", function(category, query) {
+            console.log('=== TALENTS_CATEGORY ROUTE CALLED ===');
+            console.log('Category:', category, 'Query:', query);
+            
             routes.talents.matched.dispatch(query);
             document.title += ' - ' + toTitleCase(category);
 
             $("#content-container").scrollTop(0);
             loadDataIfNeeded('talents.' + category, function() {
+                console.log('=== TALENTS DATA LOADED FOR:', category, '===');
+                console.log('Available talent categories:', getData().talents ? Object.keys(getData().talents) : 'No talents data');
+                
                 var this_nav = "#nav-" + category;
-                showCollapsed(this_nav);
+                showCollapsedWithAccordion(this_nav);
 
                 fillNavTalents(tome, category);
                 $("#content").html(listTalents(tome, category));
                 scrollToId();
 
-                // Manually initialize .collapse; if we don't, then the first
-                // click on Hide All will actually expand all.
+                // DISABLED: Manual collapse initialization was causing panels to auto-expand in Bootstrap 5
+                // Bootstrap 5 handles collapse differently than Bootstrap 3
+                // The original issue (first click on Hide All expands all) doesn't occur in Bootstrap 5
                 // See https://github.com/twbs/bootstrap/issues/5859
-                $(".talent-details.collapse").collapse({toggle: false});
+                console.log('=== SKIPPING COLLAPSE INITIALIZATION ===');
+                console.log('Total panels found:', $(".talent-details.collapse").length);
+                console.log('Bootstrap 5 will handle collapse initialization automatically');
+                
+                // However, we still need to convert Bootstrap 3 attributes to Bootstrap 5 for the talent panels
+                console.log('=== CONVERTING BOOTSTRAP ATTRIBUTES FOR TALENT CONTENT ===');
+                if (typeof convertBootstrapAttributes === 'function') {
+                    convertBootstrapAttributes();
+                    console.log('Bootstrap attributes converted for talent panels');
+                } else {
+                    console.warn('convertBootstrapAttributes function not found');
+                }
+                
+                // Debug: Monitor when panels get expanded
+                console.log('=== CHECKING PANEL STATES AFTER INIT ===');
+                var expandedPanels = $(".talent-details.collapse.show");
+                console.log('Expanded panels after init:', expandedPanels.length);
+                if (expandedPanels.length > 0) {
+                    console.log('Expanded panel IDs:', $.map(expandedPanels, function(el) { return el.id; }));
+                }
 
                 var expandingAll = false;
                 
                 $(".expand-all").on('click', function() {
+                    console.log('=== SECOND EXPAND-ALL HANDLER (talents category) ===');
+                    console.log('Setting expandingAll = true');
                     expandingAll = true;
                     setTimeout(function() { expandingAll = false; }, 1000);
                 });
                 
-                $(".talent-details.collapse").on('shown.bs.collapse', function () {
-                    if (expandingAll) return;
+                var isScrolling = false;
+                $(document).on('shown.bs.collapse', '.talent-details.collapse', function () {
+                    console.log('=== PANEL EXPANDED ===');
+                    console.log('Panel ID:', this.id);
+                    console.log('expandingAll flag:', expandingAll);
+                    console.log('isScrolling flag:', isScrolling);
+                    
+                    if (expandingAll || isScrolling) return;
                     
                     var $panel = $(this);
-                    var panelBottom = $panel.offset().top + $panel.outerHeight();
-                    var viewportBottom = $(window).scrollTop() + $(window).height();
+                    var $contentContainer = $("#content-container");
                     
-                    if (panelBottom > viewportBottom) {
-                        var scrollTarget = panelBottom - $(window).height() + 20;
+                    // Use setTimeout to ensure panel is fully expanded
+                    setTimeout(function() {
+                        if (isScrolling) return;
+                        isScrolling = true;
                         
-                        $('html, body').animate({
-                            scrollTop: scrollTarget
-                        }, 300);
+                        var panelTop = $panel.offset().top;
+                        var panelHeight = $panel.outerHeight();
+                        var panelBottom = panelTop + panelHeight;
                         
-                        $("#content-container").animate({
-                            scrollTop: $("#content-container").scrollTop() + (panelBottom - viewportBottom) + 20
-                        }, 300);
+                        var containerScrollTop = $contentContainer.scrollTop();
+                        var containerTop = $contentContainer.offset().top;
+                        var containerHeight = $contentContainer.height();
+                        var containerBottom = containerTop + containerHeight;
                         
-                        window.scrollTo({
-                            top: scrollTarget,
-                            behavior: 'smooth'
-                        });
-                    }
+                        // Check if panel extends beyond visible area
+                        if (panelBottom > containerBottom) {
+                            var targetScroll = containerScrollTop + (panelBottom - containerBottom) + 20;
+                            
+                            $contentContainer.animate({
+                                scrollTop: targetScroll
+                            }, 300, function() {
+                                isScrolling = false;
+                            });
+                        } else {
+                            isScrolling = false;
+                        }
+                    }, 50);
                 });
 
                 enableTalentTooltips();
@@ -892,7 +1012,7 @@ function initializeRoutes() {
                 $("#content-container").scrollTop(0);
 
                 var this_nav = "#nav-" + r;
-                showCollapsed(this_nav);
+                showCollapsedWithAccordion(this_nav);
 
                 $("#content").html(listRaces(tome, r));
                 
@@ -923,7 +1043,7 @@ function initializeRoutes() {
                 // Skip the scrollTop(0) for subrace navigation
 
                 var this_nav = "#nav-" + r;
-                showCollapsed(this_nav);
+                showCollapsedWithAccordion(this_nav);
 
                 $("#content").html(listRaces(tome, r));
                 
@@ -960,7 +1080,7 @@ function initializeRoutes() {
                 $("#content-container").scrollTop(0);
 
                 var this_nav = "#nav-" + cls;
-                showCollapsed(this_nav);
+                showCollapsedWithAccordion(this_nav);
 
                 $("#content").html(listClasses(tome, cls));
                 
@@ -984,7 +1104,7 @@ function initializeRoutes() {
                 // Skip the scrollTop(0) for subclass navigation
                 
                 var this_nav = "#nav-" + cls;
-                showCollapsed(this_nav);
+                showCollapsedWithAccordion(this_nav);
 
                 $("#content").html(listClasses(tome, cls));
                 
@@ -999,6 +1119,11 @@ function initializeRoutes() {
     };
 
     function parseHash(new_hash, old_hash) {
+        console.log('=== PARSE HASH CALLED ===');
+        console.log('New hash:', new_hash);
+        console.log('Old hash:', old_hash);
+        console.trace('parseHash call stack');
+        
         if (!versions.redirectMasterToDefault()) {
             crossroads.parse(new_hash);
         }
@@ -1020,7 +1145,7 @@ function loadData(data_file, success) {
     $.ajax({
         url: url + '.json',
         dataType: "json"
-    }).success(success);
+    }).done(success);
     // FIXME: Error handling
 }
 
@@ -1174,12 +1299,13 @@ Handlebars.registerHelper('opt', function(option) {
         // Get the current menu setting
         var menuSize = imgSizeSettings.get();
         
-        // Check if we're on the talents page vs classes page
+        // Check if we're on the talents or items page vs classes page
         var currentHash = window.location.hash || '';
         var isTalentsPage = currentHash.includes('#talents');
+        var isItemsPage = currentHash.includes('#items');
         
-        if (isTalentsPage) {
-            // Talents page mapping: Small=32, Medium=64, Large=96
+        if (isTalentsPage || isItemsPage) {
+            // Talents/Items page mapping: Small=32, Medium=64, Large=96
             switch(menuSize) {
                 case 32: return 32; // Small
                 case 48: return 64; // Medium
@@ -1218,6 +1344,36 @@ function handleTalentsPageSizeChange(menuSize) {
     });
 }
 
+function handleItemsPageSizeChange(menuSize) {
+    // Map menu size to actual size for items page (same as talents)
+    var actualSize;
+    switch(menuSize) {
+        case 32: actualSize = 32; break; // Small
+        case 48: actualSize = 64; break; // Medium  
+        case 64: actualSize = 96; break; // Large
+        default: actualSize = 64; break; // Default to medium
+    }
+    
+    // Update all item images on the page
+    $('.item-card img, .item-header img, .item-header-full img, .item-icon').each(function() {
+        var $img = $(this);
+        var currentSrc = $img.attr('src');
+        if (currentSrc && currentSrc.includes('/object/')) {
+            // Update image src to use new size
+            var newSrc = currentSrc.replace(/\/\d+\//, '/' + actualSize + '/');
+            $img.attr('src', newSrc);
+            $img.attr('width', actualSize);
+            $img.attr('height', actualSize);
+        }
+    });
+    
+    // Update placeholders too
+    $('.item-icon-placeholder').css({
+        'width': actualSize + 'px',
+        'height': actualSize + 'px'
+    });
+}
+
 function configureImgSize() {
     // Load saved setting
     imgSizeSettings.size = imgSizeSettings.get();
@@ -1233,13 +1389,17 @@ function configureImgSize() {
         // Apply new size classes for proper spacing
         imgSizeSettings.applyIconSizeClasses(newSize);
         
-        // Check if we're on talents page or classes page
+        // Check if we're on talents, items, or classes page
         var currentHash = window.location.hash || '';
         var isTalentsPage = currentHash.includes('#talents');
+        var isItemsPage = currentHash.includes('#items');
         
         if (isTalentsPage) {
             // For talents page, re-render images with size mapping
             handleTalentsPageSizeChange(newSize);
+        } else if (isItemsPage) {
+            // For items page, update images with size mapping (same as talents)
+            handleItemsPageSizeChange(newSize);
         } else {
             // For classes page, update image sources directly
             $('.class-talents-detail').each(function() {
@@ -1345,7 +1505,7 @@ function scrollToId() {
         if (targetId.match(/^talents\/[^\/]+\/[^\/]+\/[^\/]+$/)) {
             // Find the collapse panel associated with this talent
             var $collapsePanel = $target.closest('.panel').find('.panel-collapse.collapse');
-            if ($collapsePanel.length && !$collapsePanel.hasClass('in')) {
+            if ($collapsePanel.length && !$collapsePanel.hasClass('show')) {
                 $collapsePanel.collapse('show');
             }
         }
@@ -1375,12 +1535,26 @@ $(function() {
 
     // Clicking on a ".clickable" element triggers the <a> within it.
     $("html").on("click", ".clickable", function(e) {
+        // Skip expand-all/collapse-all buttons - they have their own handlers
+        if ($(this).hasClass('expand-all') || $(this).hasClass('collapse-all')) {
+            console.log('=== CLICKABLE HANDLER SKIPPING expand/collapse buttons ===');
+            return true;
+        }
+        
+        console.log('=== CLICKABLE HANDLER TRIGGERED ===');
+        console.log('Clicked element:', this.className);
+        console.log('Target nodeName:', e.target.nodeName);
+        console.log('Is panel-heading:', $(this).hasClass('panel-heading'));
+        console.log('Links inside:', $(this).find('a').length);
+        
         if (e.target.nodeName == 'A') {
             // If the user clicked on the link itself, then simply let
             // the browser handle it.
+            console.log('Direct link click - letting browser handle');
             return true;
         }
 
+        console.log('Triggering click on inner link');
         $(this).find('a').click();
     });
 
@@ -1398,7 +1572,7 @@ $(function() {
             // Close all other open dropdowns at the same level
             $parentLi.siblings().each(function() {
                 var $siblingCollapse = $(this).find('.collapse').first();
-                if ($siblingCollapse.hasClass('in')) {
+                if ($siblingCollapse.hasClass('show')) {
                     $siblingCollapse.collapse('hide');
                     $(this).find('.dropdown').addClass('collapsed');
                 }
@@ -1436,7 +1610,7 @@ $(function() {
                 // Close all other open dropdowns at the same level
                 $parentLi.siblings().each(function() {
                     var $siblingCollapse = $(this).find('.collapse').first();
-                    if ($siblingCollapse.hasClass('in')) {
+                    if ($siblingCollapse.hasClass('show')) {
                         $siblingCollapse.collapse('hide');
                         $(this).find('.dropdown').addClass('collapsed');
                     }

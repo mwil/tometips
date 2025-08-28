@@ -1,0 +1,101 @@
+<div class="item-detail-container">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="panel panel-default">
+                <div class="panel-header">
+                    <div class="item-header-full">
+                        {{#with item}}
+                        {{#if image}}
+                            {{> item_img_large}}
+                        {{else}}
+                            <div class="item-icon-placeholder" style="width: 64px; height: 64px; background: #ddd; display: inline-block;"></div>
+                        {{/if}}
+                        {{/with}}
+                        <div class="item-info-full">
+                            <h1 class="item-name-large" {{#if item.color}}style="color: rgb({{item.color.r}}, {{item.color.g}}, {{item.color.b}})"{{/if}}>
+                                {{item.name}}
+                            </h1>
+                            {{#if item.type}}
+                                <h3 class="item-type-large">{{item.type}}{{#if item.subtype}} ({{item.subtype}}){{/if}}</h3>
+                            {{/if}}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="panel-body">
+                    {{#if item.desc}}
+                        <div class="item-description-full">
+                            <p>{{item.desc}}</p>
+                        </div>
+                    {{/if}}
+                    
+                    <div class="row">
+                        {{#if item.combat}}
+                        <div class="col-md-6">
+                            <h4>Combat Statistics</h4>
+                            <table class="table table-condensed">
+                                {{#if item.combat.dam}}
+                                    <tr><td>Damage</td><td>{{item.combat.dam}}</td></tr>
+                                {{/if}}
+                                {{#if item.combat.apr}}
+                                    <tr><td>Armor Penetration</td><td>{{item.combat.apr}}</td></tr>
+                                {{/if}}
+                                {{#if item.combat.physcrit}}
+                                    <tr><td>Physical Critical</td><td>{{item.combat.physcrit}}%</td></tr>
+                                {{/if}}
+                                {{#if item.combat.dammod}}
+                                    {{#if item.combat.dammod.str}}
+                                        <tr><td>Damage Modifier (Str)</td><td>{{item.combat.dammod.str}}</td></tr>
+                                    {{/if}}
+                                    {{#if item.combat.dammod.dex}}
+                                        <tr><td>Damage Modifier (Dex)</td><td>{{item.combat.dammod.dex}}</td></tr>
+                                    {{/if}}
+                                {{/if}}
+                            </table>
+                        </div>
+                        {{/if}}
+                        
+                        <div class="col-md-6">
+                            <h4>Properties</h4>
+                            <table class="table table-condensed">
+                                {{#if item.base}}
+                                    <tr><td>Category</td><td>{{item.base}}</td></tr>
+                                {{/if}}
+                                {{#if item.type}}
+                                    <tr><td>Type</td><td>{{item.type}}</td></tr>
+                                {{/if}}
+                                {{#if item.subtype}}
+                                    <tr><td>Subtype</td><td>{{item.subtype}}</td></tr>
+                                {{/if}}
+                                {{#if item.cost}}
+                                    <tr>
+                                        <td>Cost</td>
+                                        <td>
+                                            {{#if item.cost.display}}
+                                                {{item.cost.display}} gold
+                                            {{else}}
+                                                {{item.cost}} gold
+                                            {{/if}}
+                                        </td>
+                                    </tr>
+                                {{/if}}
+                                {{#if item.material_level}}
+                                    <tr><td>Material Level</td><td>{{item.material_level}}</td></tr>
+                                {{/if}}
+                                {{#if item.rarity}}
+                                    <tr><td>Rarity</td><td>{{item.rarity}}</td></tr>
+                                {{/if}}
+                                {{#if item.unique}}
+                                    <tr><td>Unique</td><td>Yes</td></tr>
+                                {{/if}}
+                                {{#if item.slot}}
+                                    <tr><td>Equipment Slot</td><td>{{item.slot}}</td></tr>
+                                {{/if}}
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

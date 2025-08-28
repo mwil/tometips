@@ -758,6 +758,21 @@ for i,mastery in ipairs(masteries) do
             t.source_code = tip.util.resolveSource(d)
         end
 
+        -- Fix Uber talent names: remove #Color# tags and replace %s placeholders
+        if t.name and t.name:match("#.-#") then
+            -- Convert short_name to display name (e.g., "LICH" -> "Lich", "HIGH_THAUMATURGIST" -> "High Thaumaturgist")
+            if t.short_name and t.name:match("%%s") then
+                local display_name = t.short_name:lower():gsub("_", " "):gsub("(%w+)", function(w) 
+                    return w:sub(1,1):upper() .. w:sub(2) 
+                end)
+                -- Replace %s with the display name
+                t.name = t.name:gsub("%%s", display_name)
+            end
+            
+            -- Remove color tags from talent names
+            t.name = t.name:gsub("#[A-Z_]+#", "")
+        end
+
         talents_def_out[tid] = t
     end
 

@@ -1,0 +1,38 @@
+<div class="items-container">
+    <h2>{{#if category}}{{capitalize category}}{{else}}All Items{{/if}} ({{totalItems}} total)</h2>
+    
+    {{#each groups}}
+        <div class="main-equipment-group">
+            <h2 class="main-group-title">{{@key}}</h2>
+            
+            {{#each this}}
+                <div class="sub-equipment-group">
+                    <h4 class="sub-group-title">{{@key}} ({{this.length}})</h4>
+                    <div class="row">
+                        {{#each this}}
+                        <div class="col-md-3 col-lg-2 col-sm-4 col-xs-6">
+                            <div class="item-tile item-popup-link" data-item-id="{{id}}" data-item-name="{{name}}">
+                                <div class="item-icon-container">
+                                    {{#if image}}
+                                        {{> item_img}}
+                                    {{else}}
+                                        <div class="item-icon-placeholder" style="width: {{opt "imgSize"}}px; height: {{opt "imgSize"}}px; background: #ddd;"></div>
+                                    {{/if}}
+                                </div>
+                                <div class="item-name-container">
+                                    <div class="item-name-with-color">
+                                        {{#if color}}
+                                            <div class="item-color-indicator" style="background-color: rgb({{color.r}}, {{color.g}}, {{color.b}});"></div>
+                                        {{/if}}
+                                        <span class="item-name">{{name}}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {{/each}}
+                    </div>
+                </div>
+            {{/each}}
+        </div>
+    {{/each}}
+</div>

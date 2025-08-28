@@ -97,7 +97,7 @@ html, body, #side-nav-container, #content-container
     position: fixed;
     top: 45px; /* Position directly below the compact fixed header */
     left: 0;
-    width: auto;
+    width: 280px;
     min-width: 220px;
     max-width: 450px;
     height: calc(100vh - 45px); /* Adjust height to account for compact header */
@@ -123,10 +123,10 @@ html, body, #side-nav-container, #content-container
 #content
 {
     padding: 20px; /* Uniform padding on all sides */
-    margin-left: 260px; /* Base margin, will be adjusted by JavaScript */
+    margin-left: 280px; /* Base margin, will be adjusted by JavaScript */
     margin-right: 0; /* No right margin to prevent fake sidebar */
     box-sizing: border-box;
-    width: calc(100% - 260px); /* Calculate width to fill remaining space */
+    width: calc(100% - 280px); /* Calculate width to fill remaining space */
     max-width: none;
     min-height: calc(100vh - 45px); /* Ensure content area fills available space */
 }
@@ -136,7 +136,7 @@ html, body, #side-nav-container, #content-container
     display: none; /* Hide the right sidebar ad completely */
 }
 
-.page-header
+#content-header
 {
     position: fixed;
     top: 0;
@@ -155,7 +155,7 @@ html, body, #side-nav-container, #content-container
     width: 100%; /* Ensure full width */
 }
 
-.page-header h1
+#content-header h1
 {
     margin: 0;
     margin-left: 10px; /* Keep h1 left margin as requested */
@@ -163,7 +163,7 @@ html, body, #side-nav-container, #content-container
     font-size: 32px; /* Larger font size as requested */
 }
 
-.page-header .nav-pills
+#content-header .nav-pills
 {
     flex: 1; /* Take up available space in the center */
     display: flex;
@@ -171,12 +171,12 @@ html, body, #side-nav-container, #content-container
     margin: 0 15px; /* Add some space on sides */
 }
 
-.page-header .nav-pills li
+#content-header .nav-pills li
 {
     margin: 0 4px; /* Reduced margin between nav items */
 }
 
-.page-header .nav-pills li a
+#content-header .nav-pills li a
 {
     padding: 6px 10px; /* 6px top/bottom, 10px left/right for better look */
 }
@@ -232,6 +232,102 @@ a.anchor
     /* Remove fixed top offset - now calculated dynamically in JavaScript */
 }
 
+/* Bootstrap 5 compatibility fixes for removed classes */
+
+/* Fix link styling that might be overridden by Bootstrap 5 - use white links for dark theme */
+a {
+    color: #fff;
+    text-decoration: none;
+}
+
+a:hover, a:focus {
+    color: #5bc0de;
+    text-decoration: underline;
+}
+
+/* Blue links only for specific light-background contexts */
+.well a, .panel-body a, .modal-body a {
+    color: #337ab7;
+}
+
+.well a:hover, .panel-body a:hover, .modal-body a:hover {
+    color: #23527c;
+}
+
+/* Navigation pills use white links for dark header */
+.nav-pills .nav-link {
+    color: #fff;
+    background-color: transparent;
+}
+
+.nav-pills .nav-link:hover,
+.nav-pills .nav-link:focus {
+    color: #5bc0de;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.nav-pills .nav-link.active {
+    color: #272b30;
+    background-color: #fff;
+}
+.well {
+    padding: 19px;
+    margin-bottom: 20px;
+    background-color: #f5f5f5;
+    border: 1px solid #e3e3e3;
+    border-radius: 4px;
+}
+
+.panel {
+    margin-bottom: 20px;
+    background-color: #fff;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    box-shadow: 0 1px 1px rgba(0,0,0,.05);
+}
+
+.panel-default {
+    border-color: #ddd;
+}
+
+.panel-heading {
+    padding: 10px 15px;
+    border-bottom: 1px solid transparent;
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+    background-color: #f5f5f5;
+    border-color: #ddd;
+}
+
+.panel-title {
+    margin-top: 0;
+    margin-bottom: 0;
+    font-size: 16px;
+    color: inherit;
+}
+
+.panel-body {
+    padding: 15px;
+}
+
+.panel-collapse {
+    /* Inherit collapse behavior from Bootstrap 5 */
+}
+
+.dl-horizontal dt {
+    float: left;
+    width: 160px;
+    clear: left;
+    text-align: right;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dl-horizontal dd {
+    margin-left: 180px;
+}
+
 /* Removed duplicate overflow rules - already defined above */
 
 #side-nav {
@@ -271,7 +367,8 @@ a.anchor
 }
 
 #side-nav .dropdown:before {
-    font-family: "FontAwesome";
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
     font-size: 14px;
     content: "\f078";
     padding-right: 8px;
@@ -280,11 +377,14 @@ a.anchor
 }
 
 #side-nav .dropdown.collapsed:before {
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
     content: "\f054";
 }
 
 #side-nav .no-dropdown:before {
-    font-family: "FontAwesome";
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
     font-size: 14px;
     content: "\00a0";       /* Unicode non-breaking space - http://stackoverflow.com/a/16552398/25507 */
     padding-right: 8px;
@@ -583,6 +683,241 @@ table.old-new td {
 }
 
 /* ==========================================================================
+   Items styling
+   ========================================================================== */
+
+.items-container {
+    padding: 20px;
+}
+
+.item-card {
+    margin-bottom: 20px;
+}
+
+.item-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.item-icon {
+    margin-right: 10px;
+    flex-shrink: 0;
+}
+
+.item-info {
+    flex: 1;
+}
+
+.item-name {
+    margin: 0 0 5px 0;
+    font-size: 16px;
+}
+
+.item-type {
+    color: #666;
+    font-size: 12px;
+    font-style: italic;
+}
+
+.item-description {
+    font-size: 13px;
+    color: #555;
+    margin-bottom: 10px;
+}
+
+.item-combat {
+    margin-bottom: 10px;
+}
+
+.combat-stat {
+    display: inline-block;
+    margin-right: 15px;
+    font-size: 12px;
+    color: #d9534f;
+    font-weight: bold;
+}
+
+.item-cost {
+    font-size: 12px;
+    color: #f0ad4e;
+    margin-bottom: 10px;
+}
+
+.item-footer {
+    text-align: right;
+}
+
+/* Item tile layout for overview */
+.item-tile {
+    background: #3c3c3c;
+    border: 1px solid #555;
+    border-radius: 4px;
+    margin-bottom: 15px;
+    height: 155px; /* Increased height for better spacing */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: all 0.2s ease;
+}
+
+.item-tile:hover {
+    background: #454545;
+    border-color: #777;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.item-link {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    text-decoration: none;
+    color: inherit;
+    padding: 15px 12px;
+}
+
+.item-link:hover, .item-link:focus {
+    text-decoration: none;
+    color: inherit;
+}
+
+.item-icon-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex: 1;
+    min-height: 70px; /* Increased space for largest icon */
+    padding: 8px 0; /* Add vertical padding around icon */
+}
+
+.item-name-container {
+    text-align: center;
+    margin-top: 8px;
+    height: 40px; /* Fixed height for name area */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.item-name {
+    font-size: 16px;
+    font-weight: bold;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-break: break-word;
+    max-width: 100%;
+    color: #e8e8e8 !important; /* Light color for better readability */
+}
+
+/* Colored rectangle for item rarity/type indication */
+.item-color-indicator {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    margin-right: 6px;
+    vertical-align: middle;
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+
+/* Container for color indicator and name */
+.item-name-with-color {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Main equipment group styling */
+.main-equipment-group {
+    margin-bottom: 50px;
+}
+
+.main-group-title {
+    color: #e7b94e;
+    border-bottom: 3px solid #e7b94e;
+    padding-bottom: 10px;
+    margin-bottom: 30px;
+    font-size: 24px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Sub equipment group styling */
+.sub-equipment-group {
+    margin-bottom: 30px;
+}
+
+.sub-group-title {
+    color: #c5c5c5;
+    border-bottom: 1px solid #555;
+    padding-bottom: 6px;
+    margin-bottom: 15px;
+    font-size: 16px;
+    font-weight: 600;
+    margin-left: 20px;
+    position: relative;
+}
+
+.sub-group-title:before {
+    content: '▶';
+    position: absolute;
+    left: -15px;
+    color: #e7b94e;
+    font-size: 12px;
+}
+
+/* Item detail page */
+.item-detail-container {
+    padding: 20px;
+}
+
+.item-header-full {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+    background: #3c3c3c;
+    border-bottom: 1px solid #555;
+}
+
+.item-icon-large {
+    margin-right: 20px;
+}
+
+.item-info-full {
+    flex: 1;
+}
+
+.item-name-large {
+    margin: 0 0 10px 0;
+    font-size: 28px;
+}
+
+.item-type-large {
+    margin: 0;
+    color: #666;
+    font-size: 18px;
+    font-style: italic;
+}
+
+.item-description-full {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #2a2a2a;
+    border-left: 4px solid #5cb85c;
+    color: #ddd;
+}
+
+.item-description-full p {
+    margin: 0;
+}
+
+/* ==========================================================================
    Helper classes
    ========================================================================== */
 
@@ -837,7 +1172,7 @@ table.old-new td {
     max-height: 80vh;
     overflow-y: auto;
     z-index: 10000;
-    padding: 20px;
+    padding: 20px 36px 36px 36px;
     color: #c8c8c8;
 }
 
@@ -860,6 +1195,16 @@ table.old-new td {
     color: #ffffff;
 }
 
+#talent-popup .popup-header h3 a {
+    color: #ffffff;
+    text-decoration: none;
+}
+
+#talent-popup .popup-header h3 a:hover {
+    color: #5bc0de;
+    text-decoration: underline;
+}
+
 /* Close button */
 #talent-popup .popup-close {
     background: none;
@@ -878,6 +1223,77 @@ table.old-new td {
 /* Popup content */
 #talent-popup .popup-content {
     line-height: 1.4;
+}
+
+/* Item popup styles (reusing talent popup styles) */
+#item-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    display: none;
+}
+
+#item-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #3a3f44;
+    border: 1px solid #555;
+    border-radius: 5px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+    z-index: 10000;
+    padding: 20px 36px 36px 36px;
+    color: #c8c8c8;
+}
+
+#item-popup .popup-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #555;
+    padding-bottom: 10px;
+}
+
+#item-popup .popup-header h3 {
+    margin: 0;
+    flex: 1;
+    color: #ffffff;
+}
+
+#item-popup .popup-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #999;
+    padding: 0;
+    margin-left: 10px;
+}
+
+#item-popup .popup-close:hover {
+    color: #ffffff;
+}
+
+#item-popup .popup-content {
+    line-height: 1.4;
+}
+
+/* Make item tiles clickable */
+.item-popup-link {
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+
+.item-popup-link:hover {
+    transform: scale(1.05);
 }
 
 /* Make individual talent links more obvious */
@@ -1122,12 +1538,14 @@ table.old-new td {
 }
 
 .expand-all:before {
-    font-family: "FontAwesome";
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
     content: "\f0fe";
 }
 
 .collapse-all:before {
-    font-family: "FontAwesome"; 
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
     content: "\f146";
 }
 
