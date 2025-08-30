@@ -14,7 +14,6 @@ function loadItemsData() {
         $.getJSON('data/' + versions.current + '/items.artifacts.json'),
         $.getJSON('data/' + versions.current + '/items.special.json'),
         $.getJSON('data/' + versions.current + '/lookups/damage_types.json').fail(function() {
-            console.warn('Could not load damage types lookup, using fallback');
             return {};
         })
     ).then(function(result0, result1, result2) {
@@ -66,16 +65,7 @@ function loadItemsData() {
             });
         }
         
-        // Safe logging with error checking
-        var totalItems = items.data.all.length || 0;
-        console.log('Items data loaded:', totalItems, 'total items');
-        console.log('Artifacts:', (items.data.artifacts || []).length, ', Special:', (items.data.special || []).length);
-        
-        var damageTypesCount = 0;
-        if (items.lookups.damage_types && typeof items.lookups.damage_types === 'object') {
-            damageTypesCount = Object.keys(items.lookups.damage_types).length;
-        }
-        console.log('Damage types lookup loaded:', damageTypesCount, 'types');
+        items.loaded = true;
     });
 }
 

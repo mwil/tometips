@@ -1,0 +1,13 @@
+<table class="talent-icons-table">
+    <tbody>
+        <tr class="talent-row">
+            {{#each talents}}
+            <td class="talent-icon-cell">
+                <a href="#" class="individual-talent-link" data-talent-id="{{id}}" data-talent-type="{{../type}}" data-talent-name="{{name}}" title="{{name}}">
+                    {{> talent_img }}
+                </a>
+            </td>
+            {{/each}}
+        </tr>
+    </tbody>
+</table>

@@ -1,7 +1,4 @@
 TODO:
-- on the classes page, there are talent tree links like Corruption/Bone. Currently they navigate to #, but they could go to the actual talent. 
-- Inside a talent popup, we could link the to talent from the heading.
-- For Uber talents (class evulations), we need to get rid of the #Color# tags and fix the descriptions by analysing the code and see that should go into to %s placeholder.
 - Check for other paths that could open several collapsibles in the #talents page
 
 Improve search list:

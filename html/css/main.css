@@ -7,6 +7,42 @@
  */
 
 /* ==========================================================================
+   CSS Variables for Light/Dark Mode
+   ========================================================================== */
+
+:root {
+    /* Light mode (default) */
+    --bg-primary: #ffffff;
+    --bg-secondary: #f5f5f5;
+    --bg-tertiary: #e7e7e7;
+    --text-primary: #222222;
+    --text-secondary: #666666;
+    --text-muted: #999999;
+    --border-color: #dddddd;
+    --panel-bg: #ffffff;
+    --panel-header-bg: #f5f5f5;
+    --well-bg: #f5f5f5;
+    --link-color: #337ab7;
+    --link-hover: #23527c;
+}
+
+[data-theme="dark"] {
+    /* Dark mode - matching sidebar color #272b30 */
+    --bg-primary: #272b30;
+    --bg-secondary: #343a40;
+    --bg-tertiary: #495057;
+    --text-primary: #e0e0e0;
+    --text-secondary: #b0b0b0;
+    --text-muted: #888888;
+    --border-color: #495057;
+    --panel-bg: #343a40;
+    --panel-header-bg: #495057;
+    --well-bg: #343a40;
+    --link-color: #66b3ff;
+    --link-hover: #ffa726;
+}
+
+/* ==========================================================================
    Base styles: opinionated defaults
    ========================================================================== */
 
@@ -15,11 +51,13 @@ button,
 input,
 select,
 textarea {
-    color: #222;
+    color: var(--text-primary);
 }
 
 body {
     line-height: 1.4;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
 }
 
 /*
@@ -30,7 +68,7 @@ hr {
     display: block;
     height: 1px;
     border: 0;
-    border-top: 1px solid #ccc;
+    border-top: 1px solid var(--border-color);
     margin: 1em 0;
     padding: 0;
 }
@@ -129,6 +167,8 @@ html, body, #side-nav-container, #content-container
     width: calc(100% - 280px); /* Calculate width to fill remaining space */
     max-width: none;
     min-height: calc(100vh - 45px); /* Ensure content area fills available space */
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
 }
 
 #sidebar-ad
@@ -245,13 +285,19 @@ a:hover, a:focus {
     text-decoration: underline;
 }
 
-/* Blue links only for specific light-background contexts */
-.well a, .panel-body a, .modal-body a {
-    color: #337ab7;
+[data-theme="dark"] a:hover,
+[data-theme="dark"] a:focus {
+    color: #ffa726;
+    text-decoration: underline;
 }
 
-.well a:hover, .panel-body a:hover, .modal-body a:hover {
-    color: #23527c;
+/* Links in content areas */
+.well a, .panel-body a, .card-body a, .modal-body a {
+    color: var(--link-color);
+}
+
+.well a:hover, .panel-body a:hover, .card-body a:hover, .modal-body a:hover {
+    color: var(--link-hover);
 }
 
 /* Navigation pills use white links for dark header */
@@ -266,6 +312,12 @@ a:hover, a:focus {
     background-color: rgba(255, 255, 255, 0.1);
 }
 
+[data-theme="dark"] .nav-pills .nav-link:hover,
+[data-theme="dark"] .nav-pills .nav-link:focus {
+    color: #ffa726;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
 .nav-pills .nav-link.active {
     color: #272b30;
     background-color: #fff;
@@ -273,30 +325,30 @@ a:hover, a:focus {
 .well {
     padding: 19px;
     margin-bottom: 20px;
-    background-color: #f5f5f5;
-    border: 1px solid #e3e3e3;
+    background-color: var(--well-bg);
+    border: 1px solid var(--border-color);
     border-radius: 4px;
+    color: var(--text-primary);
 }
 
 .panel {
     margin-bottom: 20px;
-    background-color: #fff;
-    border: 1px solid transparent;
+    background-color: var(--panel-bg);
+    border: 1px solid var(--border-color);
     border-radius: 4px;
     box-shadow: 0 1px 1px rgba(0,0,0,.05);
+    color: var(--text-primary);
 }
 
-.panel-default {
-    border-color: #ddd;
-}
 
 .panel-heading {
     padding: 10px 15px;
-    border-bottom: 1px solid transparent;
+    border-bottom: 1px solid var(--border-color);
     border-top-left-radius: 3px;
     border-top-right-radius: 3px;
-    background-color: #f5f5f5;
-    border-color: #ddd;
+    background-color: var(--panel-header-bg);
+    border-color: var(--border-color);
+    color: var(--text-primary);
 }
 
 .panel-title {
@@ -308,11 +360,10 @@ a:hover, a:focus {
 
 .panel-body {
     padding: 15px;
+    /* This is so .source-link's position:absolute will work. */
+    position: relative;
 }
 
-.panel-collapse {
-    /* Inherit collapse behavior from Bootstrap 5 */
-}
 
 .dl-horizontal dt {
     float: left;
@@ -427,7 +478,8 @@ h3 img {
     margin-right: 8px;
 }
 
-.panel-title a {
+.panel-title a,
+.card-title button {
     display: block;
     width: 100%;
     height: 100%;
@@ -520,10 +572,6 @@ h3 img {
     color: #00a000;
 }
 
-.panel-body {
-    /* This is so .source-link's position:absolute will work. */
-    position: relative;
-}
 
 /* A link that's merely a hint, so we want to de-emphasize a bit. */
 a.hint-link, a.hint-link:hover {
@@ -1205,6 +1253,11 @@ table.old-new td {
     text-decoration: underline;
 }
 
+[data-theme="dark"] #talent-popup .popup-header h3 a:hover {
+    color: #ffa726;
+    text-decoration: underline;
+}
+
 /* Close button */
 #talent-popup .popup-close {
     background: none;
@@ -1311,6 +1364,11 @@ table.old-new td {
 /* Active state for image size settings dropdown */
 .dropdown-option.active {
     background-color: #337ab7;
+    color: white;
+}
+
+[data-theme="dark"] .dropdown-option.active {
+    background-color: #ffa726;
     color: white;
 }
 
@@ -1639,6 +1697,12 @@ table.old-new td {
     color: white !important;
 }
 
+[data-theme="dark"] .tt-suggestion.manual-highlight,
+[data-theme="dark"] .tt-suggestion.tt-cursor {
+    background-color: #ffa726 !important;
+    color: white !important;
+}
+
 .tt-suggestion.manual-highlight a,
 .tt-suggestion.tt-cursor a {
     color: white !important;
@@ -1765,6 +1829,57 @@ table.old-new td {
     .talent-image-section img {
         margin: 0 auto 15px auto;
     }
+}
+
+/* Dark mode table styling */
+[data-theme="dark"] .table {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .table th,
+[data-theme="dark"] .table td {
+    border-top: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] .table thead th {
+    border-bottom: 2px solid var(--border-color);
+}
+
+/* Dark mode dropdown styling */
+[data-theme="dark"] .dropdown-menu {
+    background-color: var(--panel-bg);
+    border: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] .dropdown-item {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .dropdown-item:hover,
+[data-theme="dark"] .dropdown-item:focus {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .dropdown-divider {
+    border-top: 1px solid var(--border-color);
+}
+
+/* Dark mode input styling */
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] input:focus,
+[data-theme="dark"] select:focus,
+[data-theme="dark"] textarea:focus {
+    background-color: var(--bg-tertiary);
+    border-color: var(--link-color);
+    outline: none;
 }
 
 

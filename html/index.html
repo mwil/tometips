@@ -19,7 +19,7 @@
         <link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
 
         <link rel="stylesheet" href="css/main.css">
-        <script src="js/vendor/modernizr-3.12.0.min.js"></script>
+        <link rel="stylesheet" href="css/bootstrap-5-compatibility.css">
 
         <script type='text/javascript'>
           var googletag = googletag || {};
@@ -89,6 +89,8 @@
                             <li><a class="dropdown-item dropdown-option option-img-size" data-img-size="32">Small icons</a></li>
                             <li><a class="dropdown-item dropdown-option option-img-size" data-img-size="48">Medium icons</a></li>
                             <li><a class="dropdown-item dropdown-option option-img-size" data-img-size="64">Large icons</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item dropdown-option" id="theme-toggle">🌙 Dark mode</a></li>
                         </ul>
                     </span>
                 </div>
@@ -240,19 +242,16 @@
 
         <script src="js/plugins.js"></script>
 
-        <script src="js/main.js"></script>
+        <script src="js/main.js?v=1756366860"></script>
 
         <script src="js/partials.js"></script>
-        <script src="js/templates.js"></script>
-        <script src="js/partials-registration.js"></script>
+        <script src="js/templates.js?v=1756367590"></script>
         <script src="js/talents.js"></script>
         <script src="js/classes.js"></script>
         <script src="js/races.js"></script>
         <script src="js/items.js"></script>
 
         <script>
-            console.log('BASIC DEBUG TEST - Script loading...');
-            
             // Bootstrap 5 compatibility: Convert data-toggle to data-bs-toggle and fix accordion behavior
             function convertBootstrapAttributes() {
                 try {
@@ -300,71 +299,13 @@
                     });
                     
                 } catch (e) {
-                    console.log('Bootstrap conversion error:', e);
+                    // Bootstrap conversion error - fail silently
                 }
             }
             
-            // Debug function to understand click behavior
-            function debugTalentClicks() {
-                console.log('DEBUG SETUP TEST - Setting up click handlers...');
-                
-                // Debug ANY click in the content area to see what we're missing
-                $(document).on('click', '#content *', function(e) {
-                    // Only log talent-related elements
-                    if ($(this).hasClass('panel-heading') || $(this).hasClass('panel-title') || $(this).closest('.panel').length > 0) {
-                        console.log('=== CONTENT AREA CLICK ===');
-                        console.log('Element:', this.tagName, this.className || 'no-class');
-                        console.log('Is in panel:', $(this).closest('.panel').length > 0);
-                        console.log('Closest panel-heading:', $(this).closest('.panel-heading').length > 0);
-                        console.log('Is clickable:', $(this).hasClass('clickable'));
-                        
-                        // Don't prevent the event, just log it
-                        e.stopPropagation(); // Prevent multiple logs for the same click
-                    }
-                });
-                
-                // Also check what elements exist after content loads
-                setTimeout(function() {
-                    var panelCount = $('#content .panel').length;
-                    var headingCount = $('#content .panel-heading').length;
-                    var linkCount = $('#content .panel-title a').length;
-                    
-                    console.log('=== ELEMENT COUNT CHECK ===');
-                    console.log('Panels found:', panelCount);
-                    console.log('Panel headings found:', headingCount);
-                    console.log('Panel title links found:', linkCount);
-                    
-                    if (linkCount > 0) {
-                        var firstLink = $('#content .panel-title a').first();
-                        console.log('First link attributes:');
-                        console.log('- data-target:', firstLink.attr('data-target'));
-                        console.log('- data-bs-target:', firstLink.attr('data-bs-target'));
-                        console.log('- data-toggle:', firstLink.attr('data-toggle'));
-                        console.log('- data-bs-toggle:', firstLink.attr('data-bs-toggle'));
-                    }
-                }, 3000); // Wait 3 seconds for content to load
-                
-                console.log('DEBUG SETUP COMPLETE');
-            }
-            
-            // Run conversion on page load and after content updates  
+            // Run conversion on page load
             document.addEventListener('DOMContentLoaded', function() {
-                console.log('DOM LOADED TEST - DOMContentLoaded fired');
                 convertBootstrapAttributes();
-            });
-            
-            // Also run periodically to catch dynamically loaded content
-            // DISABLED: This was causing talent panels to auto-expand every 2 seconds
-            // setInterval(convertBootstrapAttributes, 2000);
-            
-            // Run after jQuery ready
-            $(document).ready(function() {
-                console.log('JQUERY READY TEST - jQuery document ready fired');
-                debugTalentClicks();
-                // DISABLED: These repeated calls were causing talent panels to auto-expand
-                // setTimeout(convertBootstrapAttributes, 100);
-                // setTimeout(convertBootstrapAttributes, 500);
-                // setTimeout(convertBootstrapAttributes, 1000);
             });
             
             var _gaq=[['_setAccount','UA-7101995-3'],['_trackPageview']];

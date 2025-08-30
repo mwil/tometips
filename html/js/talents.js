@@ -19,13 +19,8 @@ function loadNavTalents($el) {
 function fillNavTalents(tome, category) {
     var $el = $("#nav-" + category);
     
-    console.log('fillNavTalents called with category:', category);
-    console.log('getData():', getData());
-    console.log('getData().talents:', getData() ? getData().talents : 'getData() is null/undefined');
-    
     // Safety check - if talents data isn't loaded yet, skip this call
     if (!getData() || !getData().talents || !getData().talents[category]) {
-        console.log('Talents data not ready yet, skipping fillNavTalents for:', category);
         return;
     }
     
@@ -44,10 +39,14 @@ function fillNavTalents(tome, category) {
 function listTalents(tome, category) {
     var talentData = getData().talents && getData().talents[category];
     if (!talentData) {
-        console.error('Talent data not available for category:', category);
         return '<div class="alert alert-warning">Loading talent data...</div>';
     }
-    return Handlebars.templates.talent_by_type(talentData);
+    
+    try {
+        return Handlebars.templates.talent_by_type(talentData);
+    } catch (error) {
+        return '<div class="alert alert-danger">Template error: ' + error.message + '</div>';
+    }
 }
 
 function listChangesTalents(tome) {
@@ -65,7 +64,6 @@ function fillTalentAvailability(tome, category) {
 
     // Safety check for talent data
     if (!getData() || !getData().talents || !getData().talents[category]) {
-        console.log('fillTalentAvailability: Talent data not ready for category:', category);
         return;
     }
 

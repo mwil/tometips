@@ -1,0 +1,15 @@
+{
+  "name": "tometips",
+  "version": "1.0.0",
+  "description": "Tales of Maj'Eyal character build planner and information tool",
+  "scripts": {
+    "build:templates": "node tools/build/template-compiler.js",
+    "build:all": "npm run build:templates && make json",
+    "serve": "cd html && python3 -m http.server 8000"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

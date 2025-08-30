@@ -1,0 +1,59 @@
+/* Bootstrap 5 Card Compatibility for Migrated Panel Components */
+
+/* Card styling to match original panel appearance */
+.card {
+    background-color: var(--panel-bg);
+    border: 1px solid var(--border-color);
+    margin-bottom: 1rem;
+}
+
+.card-header {
+    background-color: var(--panel-header-bg);
+    border-bottom: 1px solid var(--border-color);
+    padding: 0.75rem 1rem;
+    color: var(--text-primary);
+}
+
+.card-body {
+    padding: 1rem;
+    background-color: var(--panel-bg);
+    color: var(--text-primary);
+    position: relative; /* For .source-link absolute positioning */
+}
+
+/* Button styling for card headers to look like original panel titles */
+.card-title button {
+    text-align: left;
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--text-primary);
+    font: inherit;
+    cursor: pointer;
+}
+
+.card-title button:hover {
+    color: var(--link-hover);
+    text-decoration: none;
+}
+
+/* Ensure collapse behavior works properly with cards */
+.card .collapse {
+    border-top: none;
+}
+
+/* Dark mode support for cards */
+[data-theme="dark"] .card {
+    background-color: var(--panel-bg);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .card-header {
+    background-color: var(--panel-header-bg);
+    border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .card-body {
+    background-color: var(--panel-bg);
+    color: var(--text-primary);
+}

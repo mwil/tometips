@@ -1,0 +1,26 @@
+<div class="items-container">
+    <h2>{{#if category}}{{capitalize category}}{{else}}All Items{{/if}} ({{items.length}} shown)</h2>
+    
+    <div class="row">
+        {{#each items}}
+        <div class="col-md-3 col-lg-2 col-sm-4 col-xs-6">
+            <div class="item-tile">
+                <a href="#items/{{../category}}/{{id}}" class="item-link">
+                    <div class="item-icon-container">
+                        {{#if image}}
+                            {{> item_img}}
+                        {{else}}
+                            <div class="item-icon-placeholder" style="width: {{opt "imgSize"}}px; height: {{opt "imgSize"}}px; background: #ddd;"></div>
+                        {{/if}}
+                    </div>
+                    <div class="item-name-container">
+                        <span class="item-name" {{#if color}}style="color: rgb({{color.r}}, {{color.g}}, {{color.b}})"{{/if}}>
+                            {{name}}
+                        </span>
+                    </div>
+                </a>
+            </div>
+        </div>
+        {{/each}}
+    </div>
+</div>

@@ -126,10 +126,6 @@ function enableExpandCollapseAll()
         .attr('title', 'Collapse All');
     $(".expand-all, .collapse-all").addClass('clickable')
         .click(function() {
-            console.log('=== MAIN.JS EXPAND/COLLAPSE CLICKED ===');
-            console.log('Element:', this.className);
-            console.log('Is expand-all:', $(this).hasClass('expand-all'));
-            console.log('Target:', $(this).attr('data-target'));
             
             $($(this).attr('data-target')).find('.collapse').collapse($(this).hasClass('expand-all') ? 'show' : 'hide');
         });
@@ -203,16 +199,12 @@ function expandIds(id_list, disable_transitions)
 var prev_expanded = null;
 
 function updateFinished() {
-    console.log('=== UPDATE FINISHED CALLED ===');
-    console.log('prev_expanded:', prev_expanded);
     
     if (prev_expanded) {
         // Only restore the first nav item to maintain accordion behavior
         var navItems = prev_expanded.filter(function(id) { return id.startsWith('nav-'); });
-        console.log('Nav items to restore:', navItems);
         
         if (navItems.length > 0) {
-            console.log('Restoring nav item:', navItems[0]);
             showCollapsedWithAccordion('#' + navItems[0], true);
         }
         
@@ -222,8 +214,6 @@ function updateFinished() {
         // expandIds(nonNavItems, true);
         
         prev_expanded = null;
-    } else {
-        console.log('No prev_expanded to restore');
     }
 }
 
@@ -291,6 +281,21 @@ Handlebars.registerHelper('tome_git_url', function() {
     return 'http://git.net-core.org/tome/t-engine4';
 });
 
+// Helper to detect DLC content based on source_code path
+Handlebars.registerHelper('isDLC', function(source_code) {
+    if (!source_code || !source_code[0]) return false;
+    var path = source_code[0];
+    var isDlc = path.indexOf('data-cults') !== -1 || 
+                path.indexOf('data-orcs') !== -1 ||
+                path.indexOf('data-ashes') !== -1 ||
+                path.indexOf('data-ashes-urhrok') !== -1 ||
+                path.indexOf('data-possessors') !== -1 ||
+                // Generic check for any data-<something> pattern that's not data/
+                (path.indexOf('data-') === 0 && path !== 'data/' && path !== 'data\\/' && path.indexOf('data/') !== 0 && path.indexOf('data\\/') !== 0);
+    
+    return isDlc;
+});
+
 ///Iterates over properties, sorted. Based on http://stackoverflow.com/a/9058854/25507.
 Handlebars.registerHelper('eachProperty', function(context, options) {
     var ret = "",
@@ -314,7 +319,7 @@ Handlebars.registerHelper('eachProperty', function(context, options) {
 Handlebars.registerHelper('$', function (partial) {
     var values, opts, done, value, context;
     if (!partial) {
-        console.error('No partial name given.');
+        return '';
     }
     values = Array.prototype.slice.call(arguments, 1);
     opts = values.pop().hash;
@@ -513,9 +518,7 @@ var typeahead = (function() {
         $('.typeahead').typeahead({ highlight: true, minLength: 1 }, datasets);
         
         // Add clear button functionality (using event delegation)
-        console.log('Binding clear button functionality');
         $(document).off('click', '.search-clear').on('click', '.search-clear', function() {
-            console.log('Clear button clicked');
             var $input = $('.typeahead');
             $input.typeahead('val', '');
             $input.val('');
@@ -534,14 +537,12 @@ var typeahead = (function() {
         
         // Handle Enter key to navigate to highlighted result - try multiple approaches
         $('.typeahead').on('typeahead:select', function(e, suggestion) {
-            console.log('typeahead:select triggered', suggestion);
             if (suggestion && suggestion.href) {
                 window.location.hash = toUnsafeHtmlId(suggestion.href) + currentQuery();
             }
         });
         
         $('.typeahead').on('typeahead:autocomplete', function(e, suggestion) {
-            console.log('typeahead:autocomplete triggered', suggestion);
             if (suggestion && suggestion.href) {
                 window.location.hash = toUnsafeHtmlId(suggestion.href) + currentQuery();
             }
@@ -559,29 +560,23 @@ var typeahead = (function() {
         // Debug: check what happens with keyboard navigation (using event delegation)
         $(document).off('keydown', '.typeahead').on('keydown', '.typeahead', function(e) {
             if (e.which === 38 || e.which === 40) { // Up/Down arrows
-                console.log('Arrow key pressed:', e.which);
                 setTimeout(function() {
                     var $highlighted = $('.tt-suggestion.tt-cursor, .tt-suggestion:hover, .tt-suggestion.tt-is-under-cursor');
-                    console.log('Highlighted elements:', $highlighted.length, $highlighted);
                     // Add visual highlighting if missing
                     $('.tt-suggestion').removeClass('manual-highlight');
                     $highlighted.addClass('manual-highlight');
                     // Store the currently highlighted element
                     currentHighlighted = $highlighted.length > 0 ? $highlighted.find('a').attr('href') : null;
-                    console.log('Stored href:', currentHighlighted);
                 }, 10);
             }
             if (e.which === 13) { // Enter
-                console.log('Enter key pressed');
                 e.preventDefault();
                 
                 // Try immediate check first
                 var $highlighted = $('.tt-suggestion.tt-cursor, .tt-suggestion:hover, .tt-suggestion.tt-is-under-cursor, .tt-suggestion.manual-highlight');
-                console.log('Immediate highlighted on Enter:', $highlighted.length, $highlighted);
                 
                 if ($highlighted.length > 0) {
                     var $link = $highlighted.find('a');
-                    console.log('Link found:', $link.length, $link.attr('href'));
                     if ($link.length > 0) {
                         window.location.hash = $link.attr('href').substring(1); // Remove the leading #
                         // Clear search field after navigation
@@ -594,7 +589,6 @@ var typeahead = (function() {
                 
                 // Fall back to stored href
                 if (currentHighlighted) {
-                    console.log('Using stored href:', currentHighlighted);
                     // Remove leading # if present
                     var hash = currentHighlighted.startsWith('#') ? currentHighlighted.substring(1) : currentHighlighted;
                     window.location.hash = hash;
@@ -602,8 +596,6 @@ var typeahead = (function() {
                     $('.typeahead').typeahead('val', '');
                     $('.typeahead').val('');
                     $('.search-container').removeClass('has-content');
-                } else {
-                    console.log('No highlighted element found');
                 }
             }
         });
@@ -635,7 +627,6 @@ var versions = (function() {
     // maintain expanded/collapsed state when switching versions.
 
     function onChange() {
-        console.log('=== VERSIONS ONCHANGE CALLED ===');
         $_dropdown.val(versions.current);
 
         // Hack: If version changes, then save what IDs are expanded so
@@ -644,7 +635,6 @@ var versions = (function() {
         // refreshed.  (This is a hack because it ties the versions
         // module too closely to our DOM organization.)
         prev_expanded = getExpandedIds();
-        console.log('Versions onChange - captured prev_expanded:', prev_expanded);
         $("#side-nav").html("");
 
         updateNav();
@@ -733,11 +723,9 @@ var masteries = (function() {
     var $_dropdown;
 
     function onChange() {
-        console.log('=== MASTERIES ONCHANGE CALLED ===');
         $_dropdown.val(masteries.current);
 
         prev_expanded = getExpandedIds();
-        console.log('Masteries onChange - captured prev_expanded:', prev_expanded);
         $("#side-nav").html("");
 
         updateNav();
@@ -871,16 +859,12 @@ function initializeRoutes() {
         }),
 
         talents_category: crossroads.addRoute("talents/{category}:?query:", function(category, query) {
-            console.log('=== TALENTS_CATEGORY ROUTE CALLED ===');
-            console.log('Category:', category, 'Query:', query);
             
             routes.talents.matched.dispatch(query);
             document.title += ' - ' + toTitleCase(category);
 
             $("#content-container").scrollTop(0);
             loadDataIfNeeded('talents.' + category, function() {
-                console.log('=== TALENTS DATA LOADED FOR:', category, '===');
-                console.log('Available talent categories:', getData().talents ? Object.keys(getData().talents) : 'No talents data');
                 
                 var this_nav = "#nav-" + category;
                 showCollapsedWithAccordion(this_nav);
@@ -893,42 +877,22 @@ function initializeRoutes() {
                 // Bootstrap 5 handles collapse differently than Bootstrap 3
                 // The original issue (first click on Hide All expands all) doesn't occur in Bootstrap 5
                 // See https://github.com/twbs/bootstrap/issues/5859
-                console.log('=== SKIPPING COLLAPSE INITIALIZATION ===');
-                console.log('Total panels found:', $(".talent-details.collapse").length);
-                console.log('Bootstrap 5 will handle collapse initialization automatically');
                 
                 // However, we still need to convert Bootstrap 3 attributes to Bootstrap 5 for the talent panels
-                console.log('=== CONVERTING BOOTSTRAP ATTRIBUTES FOR TALENT CONTENT ===');
                 if (typeof convertBootstrapAttributes === 'function') {
                     convertBootstrapAttributes();
-                    console.log('Bootstrap attributes converted for talent panels');
-                } else {
-                    console.warn('convertBootstrapAttributes function not found');
                 }
                 
-                // Debug: Monitor when panels get expanded
-                console.log('=== CHECKING PANEL STATES AFTER INIT ===');
-                var expandedPanels = $(".talent-details.collapse.show");
-                console.log('Expanded panels after init:', expandedPanels.length);
-                if (expandedPanels.length > 0) {
-                    console.log('Expanded panel IDs:', $.map(expandedPanels, function(el) { return el.id; }));
-                }
 
                 var expandingAll = false;
                 
                 $(".expand-all").on('click', function() {
-                    console.log('=== SECOND EXPAND-ALL HANDLER (talents category) ===');
-                    console.log('Setting expandingAll = true');
                     expandingAll = true;
                     setTimeout(function() { expandingAll = false; }, 1000);
                 });
                 
                 var isScrolling = false;
                 $(document).on('shown.bs.collapse', '.talent-details.collapse', function () {
-                    console.log('=== PANEL EXPANDED ===');
-                    console.log('Panel ID:', this.id);
-                    console.log('expandingAll flag:', expandingAll);
-                    console.log('isScrolling flag:', isScrolling);
                     
                     if (expandingAll || isScrolling) return;
                     
@@ -1119,10 +1083,6 @@ function initializeRoutes() {
     };
 
     function parseHash(new_hash, old_hash) {
-        console.log('=== PARSE HASH CALLED ===');
-        console.log('New hash:', new_hash);
-        console.log('Old hash:', old_hash);
-        console.trace('parseHash call stack');
         
         if (!versions.redirectMasterToDefault()) {
             crossroads.parse(new_hash);
@@ -1484,10 +1444,10 @@ function scrollToId() {
         // Scroll to element with minimal breathing room
         var totalOffset = 4;
         
-        // For talent links, scroll to the panel heading instead of the link itself for better visual positioning
+        // For talent links, scroll to the card header instead of the link itself for better visual positioning
         var $scrollTarget = $target;
-        if ($target.closest('.panel-heading').length) {
-            $scrollTarget = $target.closest('.panel-heading');
+        if ($target.closest('.card-header').length) {
+            $scrollTarget = $target.closest('.card-header');
         }
         
         // Use the element's position within the content, not relative to container
@@ -1504,8 +1464,10 @@ function scrollToId() {
         // Auto-expand talent collapsible if this is a deep talent link
         if (targetId.match(/^talents\/[^\/]+\/[^\/]+\/[^\/]+$/)) {
             // Find the collapse panel associated with this talent
-            var $collapsePanel = $target.closest('.panel').find('.panel-collapse.collapse');
+            // Updated for Bootstrap 5: look for .card instead of .panel, and .collapse instead of .panel-collapse
+            var $collapsePanel = $target.closest('.card').find('.collapse');
             if ($collapsePanel.length && !$collapsePanel.hasClass('show')) {
+                // Use Bootstrap 5 collapse method
                 $collapsePanel.collapse('show');
             }
         }
@@ -1537,24 +1499,15 @@ $(function() {
     $("html").on("click", ".clickable", function(e) {
         // Skip expand-all/collapse-all buttons - they have their own handlers
         if ($(this).hasClass('expand-all') || $(this).hasClass('collapse-all')) {
-            console.log('=== CLICKABLE HANDLER SKIPPING expand/collapse buttons ===');
             return true;
         }
-        
-        console.log('=== CLICKABLE HANDLER TRIGGERED ===');
-        console.log('Clicked element:', this.className);
-        console.log('Target nodeName:', e.target.nodeName);
-        console.log('Is panel-heading:', $(this).hasClass('panel-heading'));
-        console.log('Links inside:', $(this).find('a').length);
         
         if (e.target.nodeName == 'A') {
             // If the user clicked on the link itself, then simply let
             // the browser handle it.
-            console.log('Direct link click - letting browser handle');
             return true;
         }
 
-        console.log('Triggering click on inner link');
         $(this).find('a').click();
     });
 
@@ -1651,6 +1604,41 @@ $(function() {
         _gaq.push(['_trackPageview', location.pathname + location.search + location.hash]);
         // Don't scroll here - let the route handlers call scrollToId after content loads
     });
+
+    // Dark mode toggle functionality
+    function initDarkMode() {
+        // Check for saved theme preference or default to light mode
+        const savedTheme = localStorage.getItem('theme');
+        const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const initialTheme = savedTheme || (systemDark ? 'dark' : 'light');
+        
+        // Apply initial theme
+        document.documentElement.setAttribute('data-theme', initialTheme);
+        updateThemeToggleText(initialTheme);
+        
+        // Theme toggle click handler
+        $('#theme-toggle').on('click', function(e) {
+            e.preventDefault();
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeToggleText(newTheme);
+        });
+        
+        function updateThemeToggleText(theme) {
+            const $toggle = $('#theme-toggle');
+            if (theme === 'dark') {
+                $toggle.text('☀️ Light mode');
+            } else {
+                $toggle.text('🌙 Dark mode');
+            }
+        }
+    }
+    
+    // Initialize dark mode
+    initDarkMode();
 
     // We explicitly do NOT use var, for now, to facilitate inspection in Firebug.
     // (Our route handlers and such currently also rely on tome being global.)

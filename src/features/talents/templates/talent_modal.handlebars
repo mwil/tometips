@@ -1,0 +1,71 @@
+{{! Modal for displaying individual talent details }}
+<div class="modal fade" id="talent-modal" tabindex="-1" role="dialog" aria-labelledby="talent-modal-title">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content talent-popup">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+        <h4 class="modal-title" id="talent-modal-title">{{name}}</h4>
+      </div>
+      <div class="modal-body">
+        <div class="talent-popup-layout">
+          <div class="talent-image-section">
+            {{> talent_img}}
+            {{#if info_text}}
+              <div class="talent-description">
+                {{{info_text}}}
+                {{#if no_unlearn_last}}
+                  <p class="stock-text">This talent can alter the world in a permanent way, as such you can never unlearn it once known.</p>
+                {{/if}}
+              </div>
+            {{/if}}
+          </div>
+          <div class="talent-stats-section">
+            <dl class='talent-stats-table'>
+              {{#if require}}
+                <dt>Requirements</dt>
+                <dd>
+                  {{#if multi_require}}
+                    <span class="html-tooltip" data-toggle="tooltip" data-placement="right" title="
+                    Requirements at 1-{{points}} talent points:
+                    <ol>
+                    {{#each require}}
+                      <li>{{this}}</li>
+                    {{/each}}
+                    </ol>">{{require.[0]}}</span>
+                  {{else}}
+                    {{{require.[0]}}}
+                  {{/if}}
+                </dd>
+              {{/if}}
+              {{#if mode}}<dt>Use Mode</dt><dd>{{mode}}</dd>{{/if}}
+              {{#if cost}}<dt>Cost</dt><dd>{{{cost}}}</dd>{{/if}}
+              {{#if range}}<dt>Range</dt><dd>{{{range}}}</dd>{{/if}}
+              {{#if cooldown}}<dt>Cooldown</dt><dd>{{{cooldown}}}</dd>{{/if}}
+              {{#if use_speed}}<dt>Use Speed</dt><dd>{{use_speed}}</dd>{{/if}}
+              {{#if _dlc}}<dt>DLC</dt><dd>{{_dlc_name}}</dd>{{/if}}
+            </dl>
+          </div>
+        </div>
+        {{#if talents}}
+          <div class="talent-subtree-section">
+            <h5>Individual Talents</h5>
+            <div class="talent-grid">
+              {{#each talents}}
+                <div class="individual-talent" data-talent-id="{{id}}">
+                  {{> talent_img}}
+                  <div class="talent-name">{{name}}</div>
+                </div>
+              {{/each}}
+            </div>
+          </div>
+        {{/if}}
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <a href="#talents/{{toUnsafeHtmlId type}}{{currentQuery}}" class="btn btn-primary">View Full Talent Tree</a>
+      </div>
+    </div>
+  </div>
+</div>

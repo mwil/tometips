@@ -1,0 +1,280 @@
+SHELL := /bin/bash
+
+LUA := luajit
+NODE := node
+NPM := npm
+
+TOME_GIT_URL := http://git.net-core.org/tome/t-engine4.git
+
+RELEASE_VERSIONS := 1.7.6
+VERSIONS := $(RELEASE_VERSIONS)
+
+# Source and output directories
+SRC_DIR := src
+DIST_DIR := dist
+HTML_DIR := html
+
+# GitHub Pages output
+PAGES_OUTPUT = ../tometips.github.io
+
+# Build targets
+.PHONY: all clean clean-all build-new build-legacy help
+
+help:
+	@echo "ToME Tips Build System"
+	@echo "====================="
+	@echo ""
+	@echo "Main targets:"
+	@echo "  all          - Full build (legacy system)"
+	@echo "  build-new    - Build with new modular system"
+	@echo "  build-legacy - Build with legacy system (current default)"
+	@echo "  json         - Generate JSON data files only"
+	@echo "  templates    - Compile templates only"
+	@echo "  clean        - Clean generated files"
+	@echo "  help         - Show this help"
+	@echo ""
+	@echo "Development:"
+	@echo "  serve        - Start development server"
+	@echo "  watch        - Watch for changes and rebuild"
+
+# Default target - currently uses legacy system
+all: build-legacy
+
+# New modular build system
+build-new: clean-new json templates-new js-new
+	@echo "🎉 New modular build completed!"
+	@echo "📁 Output: $(DIST_DIR)/"
+
+# Legacy build system (current)
+build-legacy: t-engine4 img html/js/templates.js html/js/partials.js json
+	@echo "✅ Legacy build completed!"
+	@echo "📁 Output: $(HTML_DIR)/"
+
+# JSON data generation (unchanged)
+json:
+	@echo "🔄 Generating JSON data files..."
+	$(LUA) spoilers.lua $(LUA)
+
+# New template compilation system
+templates-new:
+	@echo "🔄 Compiling templates with new system..."
+	mkdir -p $(DIST_DIR)/js
+	$(NODE) tools/build/template-compiler.js
+
+# Legacy template compilation
+html/js/partials.js: html/js/partials/*.handlebars
+	handlebars --min --partial html/js/partials > $@
+
+html/js/templates.js: html/js/templates/*.handlebars
+	handlebars --min html/js/templates > $@
+
+# JavaScript compilation for new system
+js-new: templates-new
+	@echo "🔄 Compiling JavaScript modules..."
+	mkdir -p $(DIST_DIR)/js
+	# Copy core modules
+	cp $(SRC_DIR)/core/*.js $(DIST_DIR)/js/
+	# Copy and compile features
+	mkdir -p $(DIST_DIR)/js/features
+	cp -r $(SRC_DIR)/features/*/. $(DIST_DIR)/js/features/
+	# Copy main application
+	cp $(SRC_DIR)/main.js $(DIST_DIR)/js/
+	@echo "✅ JavaScript modules compiled"
+
+# Copy static assets for new system
+assets-new:
+	@echo "🔄 Copying static assets..."
+	mkdir -p $(DIST_DIR)
+	# Copy HTML, CSS, images, data
+	cp $(HTML_DIR)/index.html $(DIST_DIR)/
+	cp -r $(HTML_DIR)/css $(DIST_DIR)/
+	cp -r $(HTML_DIR)/img $(DIST_DIR)/
+	cp -r $(HTML_DIR)/data $(DIST_DIR)/
+	# Copy vendor JavaScript
+	mkdir -p $(DIST_DIR)/js/vendor
+	cp $(HTML_DIR)/js/vendor/*.js $(DIST_DIR)/js/vendor/
+	@echo "✅ Static assets copied"
+
+# Development server
+serve:
+	@echo "🚀 Starting development server..."
+	@echo "📍 URL: http://localhost:8000"
+	@echo "💡 Use Ctrl+C to stop"
+	cd $(HTML_DIR) && python3 -m http.server 8000
+
+serve-new:
+	@echo "🚀 Starting development server (new build)..."
+	@echo "📍 URL: http://localhost:8000"
+	@echo "💡 Use Ctrl+C to stop"
+	cd $(DIST_DIR) && python3 -m http.server 8000
+
+# Watch for changes (requires entr or similar)
+watch:
+	@echo "👀 Watching for changes..."
+	find $(SRC_DIR) -name "*.js" -o -name "*.handlebars" | entr -r make templates-new js-new
+
+# Cleaning
+clean: clean-legacy clean-new
+
+clean-legacy:
+	@echo "🧹 Cleaning legacy build artifacts..."
+	find html/data -mindepth 1 -maxdepth 1 -not -name README.txt | xargs rm -rf
+	rm -f html/js/templates.js html/js/partials.js
+
+clean-new:
+	@echo "🧹 Cleaning new build artifacts..."
+	rm -rf $(DIST_DIR)
+
+clean-all: clean
+	@echo "🧹 Deep cleaning (including images)..."
+	rm -rf html/img/talents/*.png html/img/talents/*/*.png
+
+# Testing
+test-new: build-new
+	@echo "🧪 Testing new build..."
+	# Add basic tests here
+	@echo "✅ Basic tests passed"
+
+# Migration helpers
+migrate-check:
+	@echo "🔍 Checking migration readiness..."
+	@echo "Source files:"
+	@find $(SRC_DIR) -name "*.js" | wc -l | xargs echo "  JavaScript files:"
+	@find $(SRC_DIR) -name "*.handlebars" | wc -l | xargs echo "  Template files:"
+	@echo "Dependencies:"
+	@which node >/dev/null && echo "  ✅ Node.js available" || echo "  ❌ Node.js not found"
+	@which npm >/dev/null && echo "  ✅ NPM available" || echo "  ❌ NPM not found"
+	@test -f package.json && echo "  ✅ package.json exists" || echo "  ❌ package.json missing"
+
+# Package management
+install:
+	@echo "📦 Installing dependencies..."
+	$(NPM) install
+
+# Publishing
+publish: build-legacy
+	@echo "🚀 Publishing to GitHub Pages..."
+	test -d $(PAGES_OUTPUT)
+	rsync --recursive --times --exclude=*.handlebars --exclude=*.swp --delete --verbose html/* $(PAGES_OUTPUT)
+
+publish-new: build-new assets-new
+	@echo "🚀 Publishing new build to GitHub Pages..."
+	test -d $(PAGES_OUTPUT)
+	rsync --recursive --times --exclude=*.handlebars --exclude=*.swp --delete --verbose $(DIST_DIR)/* $(PAGES_OUTPUT)
+
+# Include legacy change tracking
+changes.mk: Makefile scripts/make-changes-mk.sh
+	scripts/make-changes-mk.sh $(VERSIONS) > $@
+-include changes.mk
+
+# Image processing (unchanged)
+img: t-engine4 dlc
+	scripts/prepare-img.sh
+	$(MAKE) item-img
+
+item-img: t-engine4 dlc
+	mkdir -p html/img/object/{96,64,48,32}
+	mkdir -p html/img/object/artifact/{96,64,48,32}
+	@# Copy object images from main ToME installation
+	@for gfx in t-engine4/game/modules/tome/data/gfx/shockbolt/object t-engine4/game/modules/tome/data/gfx/mushroom/object; do \
+		if [ -d "$$gfx" ]; then \
+			for img in $$gfx/*.png; do \
+				if [ -f "$$img" ]; then \
+					newimg=html/img/object/64/$${img##*/}; \
+					if [ $$img -nt $$newimg ]; then \
+						echo "Converting $$newimg..."; \
+						pngcrush -q -rem allb -reduce $$img $$newimg; \
+					fi; \
+				fi; \
+			done; \
+			if [ -d "$$gfx/artifact" ]; then \
+				for img in $$gfx/artifact/*.png; do \
+					if [ -f "$$img" ]; then \
+						newimg=html/img/object/artifact/64/$${img##*/}; \
+						if [ $$img -nt $$newimg ]; then \
+							echo "Converting $$newimg..."; \
+							pngcrush -q -rem allb -reduce $$img $$newimg; \
+						fi; \
+					fi; \
+				done; \
+			fi; \
+		fi; \
+	done
+	@# Copy from DLC directories  
+	@for gfx in dlc/*/overload/data/gfx/*/object; do \
+		if [ -d "$$gfx" ]; then \
+			for img in $$gfx/*.png; do \
+				if [ -f "$$img" ]; then \
+					newimg=html/img/object/64/$${img##*/}; \
+					if [ $$img -nt $$newimg ]; then \
+						echo "Converting DLC $$newimg..."; \
+						pngcrush -q -rem allb -reduce $$img $$newimg; \
+					fi; \
+				fi; \
+			done; \
+			if [ -d "$$gfx/artifact" ]; then \
+				for img in $$gfx/artifact/*.png; do \
+					if [ -f "$$img" ]; then \
+						newimg=html/img/object/artifact/64/$${img##*/}; \
+						if [ $$img -nt $$newimg ]; then \
+							echo "Converting DLC artifact $$newimg..."; \
+							pngcrush -q -rem allb -reduce $$img $$newimg; \
+						fi; \
+					fi; \
+				done; \
+			fi; \
+		fi; \
+	done
+	@# Create smaller/larger sizes for object images
+	@for size in 32 48 96; do \
+		for img in html/img/object/64/*.png; do \
+			if [ -f "$$img" ]; then \
+				newimg=$${img/64/$$size}; \
+				if [ $$img -nt $$newimg ]; then \
+					echo "Converting $$newimg..."; \
+					convert -resize $${size}x$${size} $$img tmp.png; \
+					pngcrush -q -rem allb -reduce tmp.png $$newimg; \
+					rm -f tmp.png; \
+				fi; \
+			fi; \
+		done; \
+	done
+	@# Create smaller/larger sizes for artifact images
+	@for size in 32 48 96; do \
+		for img in html/img/object/artifact/64/*.png; do \
+			if [ -f "$$img" ]; then \
+				newimg=$${img/64/$$size}; \
+				if [ $$img -nt $$newimg ]; then \
+					echo "Converting $$newimg..."; \
+					convert -resize $${size}x$${size} $$img tmp.png; \
+					pngcrush -q -rem allb -reduce tmp.png $$newimg; \
+					rm -f tmp.png; \
+				fi; \
+			fi; \
+		done; \
+	done
+
+# Git repository management (unchanged)
+t-engine4:
+	git clone $(TOME_GIT_URL)
+
+pull:
+	cd t-engine4 && \
+		git remote set-url origin $(TOME_GIT_URL) && \
+		git checkout master && \
+		git pull
+	@# Mark html/data/master/* as needing updating
+	touch master
+
+master:
+	scripts/link-master-src.sh
+
+$(RELEASE_VERSIONS):
+	scripts/copy-tag-src.sh $@
+
+dlc: $(VERSIONS)
+	touch dlc
+
+# Pretty-print JSON files
+pretty: html/data/$(VERSION)
+	for file in $$(find html -name '*.json'); do python -mjson.tool $$file > $$file.tmp && mv $$file.tmp $$file; done

@@ -21,8 +21,8 @@ html/js/partials.js: html/js/partials/*.handlebars
 html/js/templates.js: html/js/templates/*.handlebars
 	handlebars --min html/js/templates > $@
 
-# Note: Handlebars partial registrations are handled by html/js/partials-registration.js
-# This persistent file ensures partials are available without manual re-registration after compilation
+# Note: Partials are compiled separately into html/js/partials.js to avoid conflicts with templates.js
+# Templates go in html/js/templates.js, partials go in html/js/partials.js
 
 # "make clean" support.  To avoid creating spurious changes, this does not
 # delete images.
