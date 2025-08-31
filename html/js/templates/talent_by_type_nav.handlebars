@@ -6,7 +6,7 @@
         <li><a href="#changes/talents{{currentQuery}}"><span class="no-dropdown"></span>New in {{majorVersion}}</a></li>
     {{/if}}
     {{#each talent_categories}}
-        <li><a href="#talents/{{toHtmlId this}}{{currentQuery}}"><span data-toggle="collapse" data-target="#nav-{{toHtmlId this}}" class="dropdown collapsed"></span>{{toTitleCase this}}</a>
+        <li><a href="#talents/{{toHtmlId this}}{{currentQuery}}"><span data-bs-toggle="collapse" data-bs-target="#nav-{{toHtmlId this}}" class="dropdown collapsed" aria-expanded="false"></span>{{toTitleCase this}}</a>
             <ul class="nav collapse" id="nav-{{toHtmlId this}}">
                 {{! Empty for now; will be populated later }}
             </ul></li>

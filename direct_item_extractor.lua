@@ -354,6 +354,11 @@ local function create_safe_env(current_entities, base_entities)
                 end
             end
             
+            -- Clean up image paths - remove shockbolt/ prefix if present
+            if cleaned.image and type(cleaned.image) == "string" then
+                cleaned.image = cleaned.image:gsub("^shockbolt/", "")
+            end
+            
             -- Debug after cleaning (disabled)
             -- if cleaned.name and cleaned.name:match("Everpyre") then
             --     print("DEBUG: After cleaning Everpyre:")

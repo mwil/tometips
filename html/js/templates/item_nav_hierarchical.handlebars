@@ -1,0 +1,36 @@
+<ul id="nav-items" class="nav">
+    {{#each categories}}
+        <li>
+            <a href="#items/{{id}}{{currentQuery}}">
+                <span class="dropdown collapsed" data-bs-toggle="collapse" data-bs-target="#nav-{{toHtmlId id}}" aria-expanded="false"></span>
+                {{name}} ({{count}})
+            </a>
+            <ul id="nav-{{toHtmlId id}}" class="nav collapse">
+                {{#each subcategories}}
+                    <li>
+                        <a href="#items/{{../id}}/{{id}}{{currentQuery}}">
+                            {{#if subgroups.length}}
+                                <span class="dropdown collapsed" data-bs-toggle="collapse" data-bs-target="#nav-{{toHtmlId ../id}}-{{toHtmlId id}}" aria-expanded="false"></span>
+                            {{else}}
+                                <span class="no-dropdown"></span>
+                            {{/if}}
+                            {{name}} ({{count}})
+                        </a>
+                        {{#if subgroups.length}}
+                            <ul id="nav-{{toHtmlId ../id}}-{{toHtmlId id}}" class="nav collapse">
+                                {{#each subgroups}}
+                                    <li>
+                                        <a href="#items/{{../../id}}/{{../id}}/{{id}}{{currentQuery}}">
+                                            <span class="no-dropdown"></span>
+                                            {{name}} ({{count}})
+                                        </a>
+                                    </li>
+                                {{/each}}
+                            </ul>
+                        {{/if}}
+                    </li>
+                {{/each}}
+            </ul>
+        </li>
+    {{/each}}
+</ul>

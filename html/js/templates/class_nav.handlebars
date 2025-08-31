@@ -8,7 +8,7 @@
     {{/if}}
 --}}
     {{#each class_list}}
-        <li><a href="#classes/{{toHtmlId short_name}}{{currentQuery}}"><span data-toggle="collapse" data-target="#nav-{{toHtmlId short_name}}" class="dropdown collapsed"></span>{{toTitleCase display_name}}</a>
+        <li><a href="#classes/{{toHtmlId short_name}}{{currentQuery}}"><span data-bs-toggle="collapse" data-bs-target="#nav-{{toHtmlId short_name}}" class="dropdown collapsed" aria-expanded="false"></span>{{toTitleCase display_name}}</a>
             <ul class="nav collapse" id="nav-{{toHtmlId short_name}}">
                 {{#each subclass_list}}
                     <li><a href="#classes/{{toHtmlId ../short_name}}/{{toHtmlId short_name}}{{currentQuery}}">{{toTitleCase display_name}}</a></li>

@@ -24,33 +24,47 @@
                 <a href="http://te4.org/wiki/{{toWikiPage name}}">View Wiki</a>
             </div>
         </div>
-        <div class="class-detail-container container-fluid">
-            <div class="col-md-4 stats">
-                <h4>Stats</h4>
-                <dl class="dl-horizontal">
-                    {{stat "Strength" stats.str}}
-                    {{stat "Dexterity" stats.dex}}
-                    {{stat "Constitution" stats.con}}
-                    {{stat "Magic" stats.mag}}
-                    {{stat "Willpower" stats.wil}}
-                    {{stat "Cunning" stats.cun}}
-                    {{customStat "Life per level" copy.life_rating 1 10}}
-                    {{percentStat "Experience penalty" exp_penalty -1 0}}
-                </dl>
+        <div class="race-stats-container">
+            <h4>Stats</h4>
+            <table class="race-stats-table">
+                <thead>
+                    <tr>
+                        <th>STR</th>
+                        <th>DEX</th>
+                        <th>CON</th>
+                        <th>MAG</th>
+                        <th>WIL</th>
+                        <th>CUN</th>
+                        <th>Life/Lvl</th>
+                        <th>XP Penalty</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td data-label="STR">{{statValue stats.str}}</td>
+                        <td data-label="DEX">{{statValue stats.dex}}</td>
+                        <td data-label="CON">{{statValue stats.con}}</td>
+                        <td data-label="MAG">{{statValue stats.mag}}</td>
+                        <td data-label="WIL">{{statValue stats.wil}}</td>
+                        <td data-label="CUN">{{statValue stats.cun}}</td>
+                        <td data-label="Life/Lvl">{{statValue copy.life_rating}}</td>
+                        <td data-label="XP Penalty">{{#if exp_penalty}}{{statValue (negate exp_penalty)}}%{{else}}0%{{/if}}</td>
+                    </tr>
+                </tbody>
+            </table>
+            {{#if (hasAdditionalStats this)}}
+            <div class="race-additional-stats">
+                <strong>Additional:</strong>
+                {{#if size}}Size: {{size}}, {{/if}}
+                {{#if copy.global_speed_base}}Global Speed: {{statValue copy.global_speed_base}}%, {{/if}}
+                {{#if copy.poison_immune}}Poison Resist: {{statValue copy.poison_immune}}%, {{/if}}
+                {{#if copy.cut_immune}}Bleed Resist: {{statValue copy.cut_immune}}%, {{/if}}
+                {{#if copy.silence_immune}}Silence Resist: {{statValue copy.silence_immune}}%, {{/if}}
+                {{#if copy.stun_immune}}Stun Resist: {{statValue copy.stun_immune}}%, {{/if}}
+                {{#if copy.fear_immune}}Fear Resist: {{statValue copy.fear_immune}}%, {{/if}}
+                {{#if copy.no_breath}}No need to breathe{{/if}}
             </div>
-            <div class="col-md-4 stats extra-stats">
-                <h4>Additional Stats</h4>
-                <dl class="dl-horizontal">
-                    {{#if size}}{{textStat "Size" size}}{{/if}}
-                    {{#if copy.global_speed_base}}{{percentStat "Global speed" copy.global_speed_base 0 1}}{{/if}}
-                    {{#if copy.poison_immune}}{{percentStat "Poison resistance" copy.poison_immune 0 0}}{{/if}}
-                    {{#if copy.cut_immune}}{{percentStat "Bleed resistance" copy.cut_immune 0 0}}{{/if}}
-                    {{#if copy.silence_immune}}{{percentStat "Silence resistance" copy.silence_immune 0 0}}{{/if}}
-                    {{#if copy.stun_immune}}{{percentStat "Stun resistance" copy.stun_immune 0 0}}{{/if}}
-                    {{#if copy.fear_immune}}{{percentStat "Fear resistance" copy.fear_immune 0 0}}{{/if}}
-                    {{#if copy.no_breath}}{{textStat "Special" "No need to breathe"}}{{/if}}
-                </dl>
-            </div>
+            {{/if}}
         </div>
         <div class="class-detail-container container-fluid">
             {{$ 'class_talents' talents_types_sorted=race_talents_sorted talents_types=race_talents title='Race Talents' css_class='race-talents' }}

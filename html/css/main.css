@@ -417,6 +417,13 @@ a:hover, a:focus {
     line-height: 1.4; /* Ensure readable line height without padding */
 }
 
+/* Third-level navigation items (for hierarchical items navigation) */
+#side-nav > ul > li > ul > li > ul > li > a {
+    padding: 0 15px 0 60px;
+    font-size: 15px;
+    line-height: 1.3;
+}
+
 #side-nav .dropdown:before {
     font-family: "Font Awesome 5 Free";
     font-weight: 900;
@@ -728,6 +735,145 @@ table.old-new td {
 /* Also reduce stats table margin since it already has internal spacing */
 .stats-table {
     margin-bottom: 5px;
+}
+
+/* Race stats styling - compact horizontal layout */
+.race-stats-container {
+    margin-bottom: 20px;
+    padding: 0;
+}
+
+.race-stats-container h4 {
+    margin-bottom: 10px;
+    color: #e0e0e0;
+}
+
+.race-stats-table {
+    width: 100%;
+    max-width: 800px;
+    margin-bottom: 15px;
+    background-color: transparent;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.race-stats-table th,
+.race-stats-table td {
+    padding: 8px 12px;
+    text-align: center;
+    vertical-align: middle;
+    border: 1px solid #3e444c;
+    white-space: nowrap;
+}
+
+.race-stats-table th {
+    background-color: #2e3338;
+    font-weight: 600;
+    font-size: 12px;
+    color: #c8c8c8;
+    text-transform: uppercase;
+}
+
+.race-stats-table td {
+    background-color: #1c1e22;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.race-additional-stats {
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #2e3338;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #c8c8c8;
+}
+
+/* Mobile responsive styling for race stats */
+@media (max-width: 768px) {
+    .race-stats-container {
+        margin-bottom: 15px;
+    }
+    
+    .race-stats-table {
+        font-size: 12px;
+        max-width: 100%;
+        overflow-x: auto;
+        display: block;
+        white-space: nowrap;
+    }
+    
+    .race-stats-table thead,
+    .race-stats-table tbody,
+    .race-stats-table th,
+    .race-stats-table td,
+    .race-stats-table tr {
+        display: block;
+    }
+    
+    .race-stats-table thead tr {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+    }
+    
+    .race-stats-table tr {
+        border: 1px solid #3e444c;
+        margin-bottom: 10px;
+        padding: 10px;
+        background-color: #1c1e22;
+        border-radius: 4px;
+    }
+    
+    .race-stats-table td {
+        border: none;
+        position: relative;
+        padding: 5px 10px 5px 35%;
+        text-align: left;
+        background-color: transparent;
+    }
+    
+    .race-stats-table td:before {
+        content: attr(data-label);
+        position: absolute;
+        left: 6px;
+        width: 30%;
+        padding-right: 10px;
+        white-space: nowrap;
+        color: #c8c8c8;
+        font-weight: 600;
+        font-size: 11px;
+        text-transform: uppercase;
+    }
+}
+
+/* Very small screens - stack stats vertically */
+@media (max-width: 480px) {
+    .race-stats-table td {
+        padding: 8px 10px;
+    }
+    
+    .race-stats-table td:before {
+        position: static;
+        display: block;
+        margin-bottom: 3px;
+    }
+    
+    .race-additional-stats {
+        font-size: 12px;
+        padding: 8px;
+    }
+}
+
+.race-additional-stats {
+    font-size: 13px;
+    color: #b0b0b0;
+    line-height: 1.4;
+    margin-top: 10px;
+}
+
+.race-additional-stats strong {
+    color: #e0e0e0;
 }
 
 /* ==========================================================================
@@ -1064,6 +1210,541 @@ table.old-new td {
 
 .clearfix {
     *zoom: 1;
+}
+
+/* ==========================================================================
+   Mobile Navigation Styles
+   ========================================================================== */
+
+/* Mobile hamburger button */
+.mobile-nav-toggle {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 20px;
+    padding: 8px;
+    cursor: pointer;
+    z-index: 1060;
+    margin-right: 15px;
+    border-radius: 3px;
+    transition: background-color 0.2s ease;
+}
+
+.mobile-nav-toggle:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.mobile-nav-toggle:focus {
+    outline: 2px solid rgba(255, 255, 255, 0.5);
+    outline-offset: 2px;
+}
+
+/* Mobile navigation overlay */
+.mobile-nav-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1040;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.mobile-nav-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* ==========================================================================
+   Responsive Layout Styles
+   ========================================================================== */
+
+/* Tablet and below */
+@media (max-width: 991.98px) {
+    #side-nav-container {
+        width: 320px; /* Slightly wider on tablets */
+    }
+    
+    #content {
+        margin-left: 320px;
+        width: calc(100% - 320px);
+    }
+}
+
+/* Medium screens - prevent navigation from wrapping while using available space */
+@media (max-width: 1200px) and (min-width: 768px) {
+    #content-header {
+        flex-wrap: nowrap; /* Prevent wrapping */
+        padding: 5px 10px; /* Reasonable padding */
+        gap: 8px; /* Add consistent gap between flex items */
+    }
+    
+    #content-header h1 {
+        font-size: clamp(24px, 2.5vw, 30px); /* Responsive title size */
+        margin-left: 5px;
+        flex-shrink: 0; /* Don't shrink title */
+    }
+    
+    #content-header .nav-pills {
+        flex: 1; /* Take available space */
+        display: flex;
+        justify-content: center;
+        margin: 0 10px;
+        min-width: 280px; /* Minimum width to fit 4 buttons */
+    }
+    
+    #content-header .nav-pills li {
+        flex: 1; /* Each nav item takes equal space */
+        margin: 0 2px;
+    }
+    
+    #content-header .nav-pills li a {
+        padding: 6px 8px;
+        font-size: clamp(12px, 1.2vw, 15px); /* Responsive nav font */
+        text-align: center;
+        display: block;
+        white-space: nowrap; /* Prevent text wrapping */
+    }
+    
+    .header-tools {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-shrink: 0; /* Don't shrink tools */
+        min-width: 200px; /* Minimum width for tools */
+    }
+    
+    .header-tools .search-container {
+        position: relative;
+    }
+    
+    .header-tools .search-container input {
+        width: clamp(60px, 8vw, 120px); /* Responsive search width */
+        font-size: clamp(11px, 1vw, 14px);
+        padding: 4px 8px;
+    }
+    
+    .header-tools .ver-dropdown-container,
+    .header-tools .mastery-dropdown-container {
+        font-size: clamp(10px, 1vw, 13px);
+        white-space: nowrap; /* Prevent label wrapping */
+    }
+    
+    .header-tools select {
+        font-size: clamp(10px, 1vw, 13px);
+        padding: 3px 6px;
+        min-width: 50px;
+    }
+    
+    .header-tools .settings-dropdown {
+        font-size: clamp(14px, 1.5vw, 18px);
+    }
+    
+    /* Only hide expand/collapse on smaller screens within this range */
+    @media (max-width: 950px) {
+        .expand-all, .collapse-all {
+            display: none;
+        }
+    }
+}
+
+/* Mobile devices */
+@media (max-width: 767.98px) {
+    /* Hide main navigation elements on mobile - use hamburger menu instead */
+    #content-header .nav-pills,
+    .header-tools {
+        display: none !important;
+    }
+    
+    /* Hide sidebar by default on mobile - full screen width */
+    #side-nav-container {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        width: 100vw;
+        z-index: 1050;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+    }
+    
+    /* Show sidebar when active */
+    #side-nav-container.mobile-nav-open {
+        transform: translateX(0);
+    }
+    
+    /* Prevent scrolling when mobile nav is open */
+    body.mobile-nav-open {
+        overflow: hidden;
+    }
+    
+    /* Content adjustments for mobile */
+    #content {
+        margin-left: 0;
+        width: 100%;
+        padding: 15px 10px;
+    }
+    
+    /* Header adjustments for mobile */
+    #content-header {
+        padding: 8px 15px;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    
+    #content-header h1 {
+        font-size: 24px;
+        margin-left: 0;
+        flex: 1;
+        min-width: 0;
+    }
+    
+    /* All header-tools related styling removed - nav-pills, header-tools, search-container, 
+       typeahead, ver-dropdown-container, mastery-dropdown-container, and settings-dropdown 
+       are now hidden on mobile devices. Navigation is handled by the hamburger menu. */
+    
+    /* Hide expand/collapse buttons on mobile */
+    .expand-all, .collapse-all {
+        display: none;
+    }
+    
+    /* Mobile main navigation styling */
+    .mobile-main-nav {
+        background-color: rgba(0, 0, 0, 0.2);
+        border-radius: 12px;
+        margin: 20px 15px;
+        border-bottom: 1px solid #444;
+        margin-bottom: 25px;
+        padding: 10px 0;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        display: block; /* Ensure it shows on mobile */
+    }
+    
+    .mobile-main-nav-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .mobile-main-nav-list li {
+        margin-bottom: 4px;
+        padding: 0 15px;
+    }
+    
+    .mobile-main-nav-list li:last-child {
+        margin-bottom: 0;
+    }
+    
+    .mobile-main-nav a {
+        display: block;
+        padding: 18px 20px;
+        text-decoration: none;
+        color: #e0e0e0;
+        border-radius: 10px;
+        transition: all 0.2s ease;
+        font-weight: 600;
+        font-size: 18px;
+        text-align: center;
+        background-color: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .mobile-main-nav a:hover,
+    .mobile-main-nav a:focus {
+        background-color: rgba(102, 179, 255, 0.2) !important;
+        border-color: rgba(102, 179, 255, 0.4);
+        text-decoration: none;
+        color: #66b3ff;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(102, 179, 255, 0.3);
+    }
+    
+    .mobile-main-nav a.active {
+        background-color: rgba(102, 179, 255, 0.3) !important;
+        border-color: rgba(102, 179, 255, 0.5);
+        color: #66b3ff;
+        box-shadow: 0 2px 8px rgba(102, 179, 255, 0.4);
+    }
+}
+
+/* Hide mobile main navigation on larger screens */
+@media (min-width: 768px) {
+    .mobile-main-nav {
+        display: none !important;
+    }
+}
+
+/* Small mobile devices */
+@media (max-width: 575.98px) {
+    #content-header h1 {
+        font-size: 20px;
+    }
+    
+    /* header-tools and all related elements (search-container, ver-dropdown-container) 
+       styling removed - these elements are now hidden on mobile */
+    
+    /* Sidebar full screen on mobile - override the smaller width setting */
+    #side-nav-container {
+        width: 100vw;
+    }
+}
+
+/* ==========================================================================
+   Mobile Content Layout Optimizations
+   ========================================================================== */
+
+@media (max-width: 767.98px) {
+    /* Talent layout mobile optimization */
+    .talent-trees-table,
+    .talent-icons-table {
+        display: block !important;
+        width: 100% !important;
+    }
+    
+    .talent-tree-row,
+    .talent-row {
+        display: block !important;
+        margin-bottom: 15px !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: 4px !important;
+        padding: 12px !important;
+        background-color: var(--panel-bg) !important;
+    }
+    
+    .talent-tree-cell,
+    .talent-icon-cell {
+        display: block !important;
+        width: 100% !important;
+        padding: 8px 0 !important;
+        border: none !important;
+        text-align: left !important;
+    }
+    
+    .talent-tree-header {
+        margin-bottom: 12px !important;
+        padding-bottom: 8px !important;
+        border-bottom: 1px solid var(--border-color) !important;
+    }
+    
+    .talent-tree-header a {
+        font-size: 16px !important;
+        font-weight: bold !important;
+    }
+    
+    /* Talent icons flow horizontally but wrap */
+    .class-talents-detail {
+        margin: 8px 0 !important;
+    }
+    
+    .talent-icons-table .talent-row {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 8px !important;
+        padding: 8px !important;
+        margin-bottom: 8px !important;
+    }
+    
+    .talent-icons-table .talent-icon-cell {
+        display: inline-flex !important;
+        width: auto !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    
+    .talent-icon-cell a {
+        display: block !important;
+        padding: 4px !important;
+        border-radius: 3px !important;
+        transition: background-color 0.2s ease !important;
+    }
+    
+    .talent-icon-cell a:hover {
+        background-color: rgba(255, 255, 255, 0.1) !important;
+    }
+    
+    /* Column layout adjustments */
+    .col-md-4, .col-md-6 {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+        margin-bottom: 20px !important;
+    }
+    
+    .class-detail-container.container-fluid {
+        gap: 15px !important;
+    }
+    
+    /* Panel and card mobile optimization */
+    .panel, .card {
+        margin-bottom: 15px !important;
+    }
+    
+    .panel-heading, .card-header {
+        padding: 12px 15px !important;
+    }
+    
+    .panel-body, .card-body {
+        padding: 12px 15px !important;
+    }
+    
+    /* Stats table mobile optimization */
+    .stats-table {
+        font-size: 12px !important;
+        margin-bottom: 15px !important;
+    }
+    
+    .stats-table th,
+    .stats-table td {
+        padding: 6px 8px !important;
+    }
+    
+    .stats-table th {
+        font-size: 11px !important;
+    }
+    
+    .stats-table td {
+        font-size: 12px !important;
+    }
+    
+    /* Definition list mobile optimization */
+    .dl-horizontal dt {
+        float: none !important;
+        width: auto !important;
+        text-align: left !important;
+        font-weight: bold !important;
+        margin-bottom: 4px !important;
+    }
+    
+    .dl-horizontal dd {
+        margin-left: 0 !important;
+        margin-bottom: 12px !important;
+    }
+}
+
+/* ==========================================================================
+   Mobile Modal and Popup Optimizations
+   ========================================================================== */
+
+@media (max-width: 767.98px) {
+    /* Talent popup mobile optimization */
+    #talent-popup, #item-popup {
+        max-width: calc(100vw - 20px) !important;
+        max-height: calc(100vh - 60px) !important;
+        margin: 30px 10px !important;
+        padding: 15px 20px 20px 20px !important;
+        transform: translate(-50%, -50%) !important;
+        top: 50% !important;
+        left: 50% !important;
+    }
+    
+    .talent-popup-layout {
+        flex-direction: column !important;
+        gap: 15px !important;
+    }
+    
+    .talent-image-section {
+        text-align: center !important;
+        max-width: none !important;
+        order: 1 !important;
+    }
+    
+    .talent-stats-section {
+        order: 2 !important;
+    }
+    
+    .talent-image-section img {
+        margin: 0 auto 15px auto !important;
+    }
+    
+    /* Popup header mobile adjustments */
+    .popup-header {
+        margin-bottom: 15px !important;
+        padding-bottom: 8px !important;
+    }
+    
+    .popup-header h3 {
+        font-size: 18px !important;
+        line-height: 1.3 !important;
+    }
+    
+    .popup-close {
+        font-size: 20px !important;
+        padding: 4px !important;
+        margin-left: 8px !important;
+    }
+    
+    /* Talent stats table in popup */
+    .talent-stats-table dt,
+    .talent-stats-table dd {
+        padding: 6px 10px !important;
+        font-size: 13px !important;
+    }
+    
+    .talent-stats-table dt {
+        font-size: 12px !important;
+    }
+}
+
+/* ==========================================================================
+   Item Grid Mobile Optimizations
+   ========================================================================== */
+
+@media (max-width: 767.98px) {
+    .item-tile {
+        height: auto !important;
+        min-height: 100px !important;
+        margin-bottom: 12px !important;
+        padding: 0 !important;
+    }
+    
+    .item-link {
+        padding: 10px 8px !important;
+    }
+    
+    .item-icon-container {
+        min-height: 50px !important;
+        padding: 4px 0 !important;
+    }
+    
+    .item-name-container {
+        height: auto !important;
+        min-height: 30px !important;
+        margin-top: 6px !important;
+    }
+    
+    .item-name {
+        font-size: 14px !important;
+        line-height: 1.2 !important;
+    }
+    
+    /* Item overview grid */
+    .items-container {
+        padding: 15px 10px !important;
+    }
+    
+    .main-equipment-group {
+        margin-bottom: 30px !important;
+    }
+    
+    .main-group-title {
+        font-size: 20px !important;
+        margin-bottom: 20px !important;
+        padding-bottom: 8px !important;
+    }
+    
+    .sub-equipment-group {
+        margin-bottom: 20px !important;
+    }
+    
+    .sub-group-title {
+        font-size: 14px !important;
+        margin-bottom: 10px !important;
+        margin-left: 15px !important;
+    }
+    
+    .sub-group-title:before {
+        left: -12px !important;
+        font-size: 10px !important;
+    }
 }
 
 /* ==========================================================================

@@ -139,15 +139,62 @@ function convertToMEColor(tomeColor) {
 function navItems() {
     if (!items.loaded) return '<div>Loading items...</div>';
     
-    var categories = [
-        { id: 'artifacts', name: 'Artifacts', count: items.data.artifacts.length },
-        { id: 'special', name: 'Equipment', count: items.data.special.length }
-    ];
+    // Group items by main categories and subcategories
+    var artifactGroups = groupItemsByType(items.data.artifacts);
+    var equipmentGroups = groupItemsByType(items.data.special);
     
-    return Handlebars.templates.item_nav({ categories: categories });
+    // Create navigation structure similar to talents
+    var navData = {
+        categories: [
+            {
+                id: 'artifacts',
+                name: 'Artifacts',
+                count: items.data.artifacts.length,
+                subcategories: createSubcategoryNav(artifactGroups)
+            },
+            {
+                id: 'equipment', 
+                name: 'Equipment',
+                count: items.data.special.length,
+                subcategories: createSubcategoryNav(equipmentGroups)
+            }
+        ]
+    };
+    
+    return Handlebars.templates.item_nav_hierarchical(navData);
+}
+
+function createSubcategoryNav(groupedItems) {
+    var subcategories = [];
+    
+    Object.keys(groupedItems).forEach(function(mainGroup) {
+        var subgroups = [];
+        Object.keys(groupedItems[mainGroup]).forEach(function(subGroup) {
+            var items = groupedItems[mainGroup][subGroup];
+            if (items.length > 0) {
+                subgroups.push({
+                    id: toHtmlId(subGroup),
+                    name: subGroup,
+                    count: items.length
+                });
+            }
+        });
+        
+        if (subgroups.length > 0) {
+            subcategories.push({
+                id: toHtmlId(mainGroup),
+                name: mainGroup,
+                count: subgroups.reduce(function(sum, sg) { return sum + sg.count; }, 0),
+                subgroups: subgroups
+            });
+        }
+    });
+    
+    return subcategories;
 }
 
 // Detailed equipment type groupings with subcategories
+// Based on comprehensive analysis of all 47 base classes from the documentation
 var equipmentGroups = {
     'Weapons': {
         'Swords': ['BASE_LONGSWORD', 'BASE_GREATSWORD'],
@@ -161,10 +208,11 @@ var equipmentGroups = {
         'Staves': ['BASE_STAFF'],
         'Mindstars': ['BASE_MINDSTAR'],
         'Rods': ['BASE_ROD'],
+        'Wands': ['BASE_WAND'],
+        'Totems': ['BASE_TOTEM'],
         'Steam Guns': ['BASE_STEAMGUN'],
         'Steam Saws': ['BASE_STEAMSAW'],
-        'Whips': ['BASE_WHIP'],
-        'Diggers': ['BASE_DIGGER']
+        'Whips': ['BASE_WHIP']
     },
     'Armor & Defense': {
         'Light Armor': ['BASE_CLOTH_ARMOR', 'BASE_LIGHT_ARMOR'],
@@ -175,6 +223,7 @@ var equipmentGroups = {
     'Head & Extremities': {
         'Helmets': ['BASE_HELM'],
         'Caps & Hats': ['BASE_LEATHER_CAP', 'BASE_LEATHER_HAT', 'BASE_WIZARD_HAT'],
+        'Special Wrappings': ['BASE_MUMMY_WRAPPING'],
         'Gauntlets': ['BASE_GAUNTLETS'],
         'Gloves': ['BASE_GLOVES'],
         'Light Boots': ['BASE_LEATHER_BOOT'],
@@ -183,7 +232,8 @@ var equipmentGroups = {
     },
     'Jewelry': {
         'Amulets': ['BASE_AMULET'],
-        'Rings': ['BASE_RING']
+        'Rings': ['BASE_RING'],
+        'Torques': ['BASE_TORQUE']
     },
     'Consumables & Tools': {
         'Scrolls': ['BASE_SCROLL'],
@@ -197,7 +247,10 @@ var equipmentGroups = {
     'Miscellaneous': {
         'Gems & Materials': ['BASE_GEM'],
         'Tools': ['BASE_TOOL_MISC'],
-        'Light Sources': ['BASE_LITE']
+        'Light Sources': ['BASE_LITE'],
+        'Currency': ['BASE_MONEY'],
+        'Mounts': ['BASE_MOUNT'],
+        'Diggers': ['BASE_DIGGER']
     },
     'Lore & Books': {
         'Lore Books': ['BASE_LORE_RANDOM']
@@ -268,16 +321,14 @@ function groupItemsByType(itemList) {
     return grouped;
 }
 
-function listItems(category) {
+function listItems(category, subcategory) {
     if (!items.loaded) return '<div>Loading items...</div>';
     
     var itemList = [];
     
     if (category === 'artifacts') {
-        // Show all artifacts
         itemList = items.data.artifacts;
-    } else if (category === 'special') {
-        // Show all equipment
+    } else if (category === 'equipment') {
         itemList = items.data.special;
     } else {
         // Show all items (artifacts + equipment)
@@ -287,9 +338,37 @@ function listItems(category) {
     // Group items by equipment type
     var groupedItems = groupItemsByType(itemList);
     
+    // Filter by subcategory if specified
+    if (subcategory) {
+        var actualSubcategory = null;
+        
+        // First try exact match (original name)
+        if (groupedItems[subcategory]) {
+            actualSubcategory = subcategory;
+        } else {
+            // Try to find by HTML ID match
+            Object.keys(groupedItems).forEach(function(key) {
+                if (toHtmlId(key) === subcategory) {
+                    actualSubcategory = key;
+                }
+            });
+        }
+        
+        if (actualSubcategory) {
+            var filteredGroups = {};
+            filteredGroups[actualSubcategory] = groupedItems[actualSubcategory];
+            groupedItems = filteredGroups;
+            itemList = [];
+            Object.keys(groupedItems[actualSubcategory]).forEach(function(subGroup) {
+                itemList = itemList.concat(groupedItems[actualSubcategory][subGroup]);
+            });
+        }
+    }
+    
     var html = Handlebars.templates.item_list_grouped({ 
         groups: groupedItems,
         category: category || 'all',
+        subcategory: subcategory,
         totalItems: itemList.length
     });
     
@@ -324,27 +403,7 @@ function showItem(itemId) {
     return Handlebars.templates.item_detail({ item: item });
 }
 
-// Router integration
-crossroads.addRoute('items', function() {
-    loadItemsData().then(function() {
-        setActiveNav('items');
-        $("#content").html(navItems());
-    });
-});
-
-crossroads.addRoute('items/{category}', function(category) {
-    loadItemsData().then(function() {
-        setActiveNav('items');
-        $("#content").html(listItems(category));
-    });
-});
-
-crossroads.addRoute('items/{category}/{itemId}', function(category, itemId) {
-    loadItemsData().then(function() {
-        setActiveNav('items');
-        $("#content").html(showItem(itemId));
-    });
-});
+// Router integration is now handled in main.js
 
 // Item popup functions (similar to talent popup)
 function showItemPopup(itemId, itemName) {

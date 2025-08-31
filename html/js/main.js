@@ -75,11 +75,33 @@ function updateNav() {
 
 // Removed old scrollToId function - using the updated one below
 
+function createMobileNavigation(contentNav) {
+    // Always create main navigation menu - CSS will handle visibility
+    var mainNav = '<div class="mobile-main-nav">';
+    mainNav += '<ul class="mobile-main-nav-list">';
+    mainNav += '<li><a href="#races" data-nav="races">📊 Races</a></li>';
+    mainNav += '<li><a href="#classes" data-nav="classes">⚔️ Classes</a></li>';
+    mainNav += '<li><a href="#talents" data-nav="talents">🔮 Talents</a></li>';
+    mainNav += '<li><a href="#items" data-nav="items">🗡️ Items</a></li>';
+    mainNav += '</ul></div>';
+    
+    return mainNav + (contentNav || '');
+}
+
 function adjustSidebarLayout() {
     // Function to adjust content margin and width based on actual sidebar width
     function updateContentMargin() {
         var $sidebar = $('#side-nav-container');
         var $content = $('#content');
+        
+        // Skip adjustments on mobile - let CSS media queries handle it
+        if (window.innerWidth <= 767.98) {
+            $content.css({
+                'margin-left': '',
+                'width': ''
+            });
+            return;
+        }
         
         // Wait for sidebar to be populated and measure its actual width
         if ($sidebar.length && $sidebar.children().length > 0) {
@@ -134,6 +156,12 @@ function enableExpandCollapseAll()
 /**Enforces sidebar accordion behavior by closing other open nav collapsibles */
 function enforceSidebarAccordion(targetNavId) {
     if (!targetNavId.startsWith('#nav-')) return;
+    
+    // Disable automatic accordion behavior for items navigation - handle manually
+    if (targetNavId.includes('artifacts') || targetNavId.includes('equipment') || 
+        targetNavId.includes('consumables') || targetNavId.includes('special')) {
+        return;
+    }
     
     var targetId = targetNavId.substring(1);
     
@@ -241,8 +269,8 @@ function toTitleCase(s)
 ///ToME-specific function that makes a ToME ID a valid and standard HTML ID
 function toHtmlId(s)
 {
-    // For now, only replace characters known to cause issues.
-    return s.toLowerCase().replace(/[':\/]/, '_');
+    // Replace characters known to cause issues in CSS selectors, then collapse multiple underscores
+    return s.toLowerCase().replace(/[':\/\s&]/g, '_').replace(/_+/g, '_');
 }
 
 ///As toHtmlId, but leaves slashes intact, for code like talents that
@@ -461,6 +489,21 @@ Handlebars.registerHelper('statValue', function(value) {
 
 Handlebars.registerHelper('textStat', function(desc, value) {
     return new Handlebars.SafeString('<dt>' + desc + ':</dt><dd><span class="stat-neutral">' + value + '</span></dd>');
+});
+
+Handlebars.registerHelper('negate', function(value) {
+    return -value;
+});
+
+Handlebars.registerHelper('hasAdditionalStats', function(context) {
+    return !!(context.size || 
+             context.copy.global_speed_base ||
+             context.copy.poison_immune ||
+             context.copy.cut_immune ||
+             context.copy.silence_immune ||
+             context.copy.stun_immune ||
+             context.copy.fear_immune ||
+             context.copy.no_breath);
 });
 
 // Old configureImgSize function removed - replaced by new imgSizeSettings system
@@ -802,14 +845,10 @@ var routes,
 function initializeRoutes() {
     routes = {
 
-        // Default route.
+        // Default route - redirect to classes overview
         default_route: crossroads.addRoute(':?query:', function(query) {
-            versions.update(query);
-            document.title = base_title;
-            setActiveNav();
-
-            $("#content").html($("#news").html());
-            $("#side-nav").html('');
+            // Redirect to classes overview instead of showing news
+            hasher.replaceHash('classes' + (query ? '?' + query : ''));
         }),
 
         // Updates for previous versions of the site.
@@ -851,7 +890,7 @@ function initializeRoutes() {
 
             if (!$("#nav-talents").length) {
                 loadDataIfNeeded('', function() {
-                    $("#side-nav").html(navTalents(tome));
+                    $("#side-nav").html(createMobileNavigation(navTalents(tome)));
                     load_nav_data_handler = loadNavTalents;
                     $("#content").html($("#news").html());
                 });
@@ -952,7 +991,7 @@ function initializeRoutes() {
 
             if (!$("#nav-races").length) {
                 loadRacesIfNeeded(function() {
-                    $("#side-nav").html(navRaces(tome));
+                    $("#side-nav").html(createMobileNavigation(navRaces(tome)));
                     load_nav_data_handler = false;
                     $("#content").html($("#news").html());
                 });
@@ -1027,7 +1066,7 @@ function initializeRoutes() {
 
             if (!$("#nav-classes").length) {
                 loadClassesIfNeeded(function() {
-                    $("#side-nav").html(navClasses(tome));
+                    $("#side-nav").html(createMobileNavigation(navClasses(tome)));
                     load_nav_data_handler = false;
                     $("#content").html($("#news").html());
                 });
@@ -1079,6 +1118,58 @@ function initializeRoutes() {
 
                 updateFinished();
             });
+        }),
+
+        items: crossroads.addRoute('items:?query:', function(query) {
+            versions.update(query);
+            document.title = base_title + ' - Items';
+            setActiveNav("#items");
+
+            if (!$("#nav-items").length) {
+                loadItemsData().then(function() {
+                    $("#side-nav").html(createMobileNavigation(navItems()));
+                    load_nav_data_handler = false;
+                    $("#content").html(listItems('all'));
+                });
+            }
+        }),
+
+        items_category: crossroads.addRoute("items/{category}:?query:", function(category, query) {
+            routes.items.matched.dispatch(query);
+            document.title += ' - ' + toTitleCase(category);
+
+            $("#content-container").scrollTop(0);
+            loadItemsData().then(function() {
+                var this_nav = "#nav-" + category;
+                showCollapsedWithAccordion(this_nav);
+
+                $("#content").html(listItems(category));
+                scrollToId();
+                updateFinished();
+            });
+        }),
+
+        items_subcategory: crossroads.addRoute("items/{category}/{subcategory}:?query:", function(category, subcategory, query) {
+            routes.items.matched.dispatch(query);
+            document.title += ' - ' + toTitleCase(category) + ' - ' + toTitleCase(subcategory);
+
+            $("#content-container").scrollTop(0);
+            loadItemsData().then(function() {
+                var this_nav = "#nav-" + category + "-" + subcategory;
+                showCollapsedWithAccordion(this_nav);
+
+                $("#content").html(listItems(category, subcategory));
+                scrollToId();
+                updateFinished();
+            });
+        }),
+
+        items_subgroup: crossroads.addRoute("items/{category}/{subcategory}/{subgroup}:?query:", function(category, subcategory, subgroup, query) {
+            routes.items_subcategory.matched.dispatch(category, subcategory, query);
+        }),
+
+        items_item: crossroads.addRoute("items/{category}/{itemId}:?query:", function(category, itemId, query) {
+            routes.items_category.matched.dispatch(category, query);
         })
     };
 
@@ -1264,8 +1355,16 @@ Handlebars.registerHelper('opt', function(option) {
         var isTalentsPage = currentHash.includes('#talents');
         var isItemsPage = currentHash.includes('#items');
         
-        if (isTalentsPage || isItemsPage) {
-            // Talents/Items page mapping: Small=32, Medium=64, Large=96
+        if (isTalentsPage) {
+            // Talents page mapping: Small=48, Medium=64, Large=96
+            switch(menuSize) {
+                case 32: return 48; // Small
+                case 48: return 64; // Medium
+                case 64: return 96; // Large
+                default: return 64; // Default to medium
+            }
+        } else if (isItemsPage) {
+            // Items page mapping: Small=32, Medium=64, Large=96
             switch(menuSize) {
                 case 32: return 32; // Small
                 case 48: return 64; // Medium
@@ -1281,27 +1380,25 @@ Handlebars.registerHelper('opt', function(option) {
 });
 
 function handleTalentsPageSizeChange(menuSize) {
-    // Map menu size to actual size for talents page
-    var actualSize;
-    switch(menuSize) {
-        case 32: actualSize = 32; break; // Small
-        case 48: actualSize = 64; break; // Medium  
-        case 64: actualSize = 96; break; // Large
-        default: actualSize = 64; break; // Default to medium
-    }
+    // For talents page, we need to re-render the content to pick up new icon sizes
+    // since the images are rendered from Handlebars templates using {{opt "imgSize"}}
     
-    // Update all talent images on the page
-    $('.panel-title img, .talent-details img').each(function() {
-        var $img = $(this);
-        var currentSrc = $img.attr('src');
-        if (currentSrc && currentSrc.includes('/talents/')) {
-            // Update image src to use new size
-            var newSrc = currentSrc.replace(/\/\d+\//, '/' + actualSize + '/');
-            $img.attr('src', newSrc);
-            $img.attr('width', actualSize);
-            $img.attr('height', actualSize);
+    var currentHash = window.location.hash || '';
+    var hashParts = currentHash.substring(1).split('/');
+    
+    // Check if we're on a specific talents category page
+    if (hashParts.length >= 2 && hashParts[0] === 'talents') {
+        var category = hashParts[1];
+        
+        // Re-render the talents content with new icon size
+        var talentData = getData().talents && getData().talents[category];
+        if (talentData) {
+            $("#content").html(listTalents(tome, category));
+            enableTalentTooltips();
+            fillTalentAvailability(tome, category);
+            scrollToId(); // Maintain scroll position if user was viewing a specific talent
         }
-    });
+    }
 }
 
 function handleItemsPageSizeChange(menuSize) {
@@ -1417,20 +1514,49 @@ function scrollToId() {
     // Try to find the element - first without escaping for modern IDs like "talents/category/type/id"
     var $target = document.getElementById(targetId) ? $(document.getElementById(targetId)) : null;
     
-    // If not found and this looks like a deep talent link, try with t_ prefix and toHtmlId transformation
-    if (!$target && targetId.match(/^talents\/[^\/]+\/[^\/]+\/[^\/]+$/)) {
+    // If not found and this looks like a deep talent link, try different ID formats
+    if (!$target && targetId.match(/^talents\/[^\/]+\/[^\/]+/)) {
         var parts = targetId.split('/');
-        var talentId = parts[3];
         
-        // Try with t_ prefix (most common case)
-        var prefixedId = parts[0] + '/' + parts[1] + '/' + parts[2] + '/t_' + talentId;
-        $target = document.getElementById(prefixedId) ? $(document.getElementById(prefixedId)) : null;
-        
-        // If still not found, try with t_ prefix and toHtmlId transformation (for talents with special characters)
-        if (!$target) {
-            var transformedId = talentId.toLowerCase().replace(/[':\/]/, '_');
-            var transformedPrefixedId = parts[0] + '/' + parts[1] + '/' + parts[2] + '/t_' + transformedId;
-            $target = document.getElementById(transformedPrefixedId) ? $(document.getElementById(transformedPrefixedId)) : null;
+        // Handle both 3-part (talents/category/talent_id) and 4-part (talents/category/type/talent_id) formats
+        if (parts.length === 4) {
+            // 4-part format: talents/category/type/talent_id
+            var talentId = parts[3];
+            
+            // Try with t_ prefix (most common case)
+            var prefixedId = parts[0] + '/' + parts[1] + '/' + parts[2] + '/t_' + talentId;
+            $target = document.getElementById(prefixedId) ? $(document.getElementById(prefixedId)) : null;
+            
+            // If still not found, try with t_ prefix and toHtmlId transformation
+            if (!$target) {
+                var transformedId = talentId.toLowerCase().replace(/[':\/]/, '_');
+                var transformedPrefixedId = parts[0] + '/' + parts[1] + '/' + parts[2] + '/t_' + transformedId;
+                $target = document.getElementById(transformedPrefixedId) ? $(document.getElementById(transformedPrefixedId)) : null;
+            }
+            
+            // If still not found, try 3-part format (template might use category as type)
+            if (!$target) {
+                var altId = parts[0] + '/' + parts[1] + '/' + talentId;
+                $target = document.getElementById(altId) ? $(document.getElementById(altId)) : null;
+                
+                if (!$target) {
+                    var altTransformedId = parts[0] + '/' + parts[1] + '/' + transformedId;
+                    $target = document.getElementById(altTransformedId) ? $(document.getElementById(altTransformedId)) : null;
+                }
+            }
+        } else if (parts.length === 3) {
+            // 3-part format: talents/category/talent_id
+            var talentId = parts[2];
+            
+            // Try direct match first
+            $target = document.getElementById(targetId) ? $(document.getElementById(targetId)) : null;
+            
+            // If not found, try with toHtmlId transformation
+            if (!$target) {
+                var transformedId = talentId.toLowerCase().replace(/[':\/]/, '_');
+                var transformedTargetId = parts[0] + '/' + parts[1] + '/' + transformedId;
+                $target = document.getElementById(transformedTargetId) ? $(document.getElementById(transformedTargetId)) : null;
+            }
         }
     }
     
@@ -1462,7 +1588,8 @@ function scrollToId() {
         $("#content-container").scrollTop(Math.max(0, targetScroll));
         
         // Auto-expand talent collapsible if this is a deep talent link
-        if (targetId.match(/^talents\/[^\/]+\/[^\/]+\/[^\/]+$/)) {
+        var parts = targetId.split('/');
+        if (targetId.match(/^talents\/[^\/]+\/[^\/]+/) && parts.length >= 3) {
             // Find the collapse panel associated with this talent
             // Updated for Bootstrap 5: look for .card instead of .panel, and .collapse instead of .panel-collapse
             var $collapsePanel = $target.closest('.card').find('.collapse');
@@ -1511,80 +1638,157 @@ $(function() {
         $(this).find('a').click();
     });
 
-    // Hack: Clicking the expand / collapse within an <a> doesn't trigger the <a>.
+    // Flag to prevent dropdown handling after navigation
+    // Clean event handling for navigation
+    $("#side-nav").off("click");
+    $("#nav-items").off("click");
+    
+    // TALENTS NAVIGATION (#side-nav) - Restore original simple logic
     $("#side-nav").on("click", ".dropdown", function(e) {
         e.preventDefault();
-        
-        // Implement accordion behavior - close other open dropdowns
-        var $clickedDropdown = $(this);
-        var $parentLi = $clickedDropdown.closest('li');
-        var $targetCollapse = $parentLi.find('.collapse').first();
-        
-        // If this dropdown is about to be expanded (currently collapsed)
-        if ($clickedDropdown.hasClass('collapsed')) {
-            // Close all other open dropdowns at the same level
-            $parentLi.siblings().each(function() {
-                var $siblingCollapse = $(this).find('.collapse').first();
-                if ($siblingCollapse.hasClass('show')) {
-                    $siblingCollapse.collapse('hide');
-                    $(this).find('.dropdown').addClass('collapsed');
-                }
-            });
-        }
-    });
-
-    // Handle subitem clicks (prevent event bubbling to parent)
-    $("#side-nav").on("click", ".collapse li > a", function(e) {
-        // Let subitems navigate normally without interfering with accordion behavior
         e.stopPropagation();
-    });
-
-    // Make category title clicks trigger the same accordion behavior AND navigate to the page
-    $("#side-nav").on("click", "> ul > li > a", function(e) {
-        var $link = $(this);
-        var $dropdown = $link.find(".dropdown");
         
-        // Only handle links that have a collapsible dropdown caret
-        if ($dropdown.length > 0) {
-            e.preventDefault();
+        var $dropdown = $(this);
+        var targetSelector = $dropdown.attr('data-target') || $dropdown.attr('data-bs-target');
+        var $targetCollapse = $(targetSelector);
+        var $parentLi = $dropdown.closest('li');
+        var isCurrentlyCollapsed = $dropdown.hasClass('collapsed');
+        
+        // Simple toggle behavior for talents
+        if (isCurrentlyCollapsed) {
+            // Check if this is top-level (direct child of #side-nav)
+            var isTopLevel = $parentLi.parent().attr('id') === 'side-nav';
             
-            // Implement the same accordion behavior as the dropdown click handler
-            var $parentLi = $dropdown.closest('li');
-            var $targetCollapse = $parentLi.find('.collapse').first();
-            
-            // If this dropdown is about to be expanded (currently collapsed)
-            if ($dropdown.hasClass('collapsed')) {
-                // Navigate to the page when opening the collapsible
-                var href = $link.attr('href');
-                if (href) {
-                    window.location.hash = href.substring(1); // Remove leading #
-                }
-                
-                // Close all other open dropdowns at the same level
+            if (isTopLevel) {
+                // Close all other top-level sections (accordion behavior)
                 $parentLi.siblings().each(function() {
-                    var $siblingCollapse = $(this).find('.collapse').first();
+                    var $siblingCollapse = $(this).find('> .collapse');
+                    var $siblingDropdown = $(this).find('> a > .dropdown');
                     if ($siblingCollapse.hasClass('show')) {
                         $siblingCollapse.collapse('hide');
-                        $(this).find('.dropdown').addClass('collapsed');
+                        $siblingDropdown.addClass('collapsed').attr('aria-expanded', 'false');
                     }
                 });
                 
+                // Navigate when expanding top-level
+                var $link = $dropdown.closest('a');
+                var href = $link.attr('href');
+                if (href) {
+                    window.location.hash = href.substring(1);
+                }
+            }
+            
+            $targetCollapse.collapse('show');
+        } else {
+            $targetCollapse.collapse('hide');
+        }
+    });
+    
+    // ITEMS NAVIGATION - Use event delegation for dynamically loaded content
+    
+    // ITEMS NAVIGATION: Separate handlers for each type to prevent interference
+    
+    // LEVEL 1: Top-level accordion sections ONLY (not nested)
+    $(document).on("click", "#nav-items > li > a", function(e) {
+        var $link = $(this);
+        var $parentLi = $link.closest('li');
+        
+        // Only handle if this is truly a direct child (not nested)
+        if ($parentLi.parent().attr('id') !== 'nav-items') {
+            return; // Skip if this is actually a nested element
+        }
+        
+        var hasDropdown = $link.find('.dropdown').length > 0;
+        
+        if (hasDropdown) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            
+            var $dropdown = $link.find('.dropdown');
+            var targetSelector = $dropdown.attr('data-bs-target');
+            var $targetCollapse = $(targetSelector);
+            var isCurrentlyCollapsed = $dropdown.hasClass('collapsed');
+            
+            if (isCurrentlyCollapsed) {
+                // Close all other top-level sections (accordion behavior)
+                $parentLi.siblings().each(function() {
+                    var $siblingCollapse = $(this).find('> .collapse');
+                    if ($siblingCollapse.hasClass('show')) {
+                        $siblingCollapse.collapse('hide');
+                    }
+                });
+                
+                // Navigate when expanding top-level
+                var href = $link.attr('href');
+                if (href) {
+                    window.location.hash = href.substring(1);
+                }
+                
                 // Open this section
                 $targetCollapse.collapse('show');
-                $dropdown.removeClass('collapsed');
             } else {
-                // Close this section (no navigation when closing)
                 $targetCollapse.collapse('hide');
-                $dropdown.addClass('collapsed');
             }
         }
     });
-
-    $("#side-nav").on("shown.bs.collapse", ".collapse", function(e) {
-        if (load_nav_data_handler) {
-            load_nav_data_handler($(this));
+    
+    // LEVEL 2+: Nested sections and leaf items (higher priority, runs first)
+    $(document).on("click", "#nav-items .collapse a", function(e) {
+        var $link = $(this);
+        var hasDropdown = $link.find('.dropdown').length > 0;
+        var hasNoDropdown = $link.find('.no-dropdown').length > 0;
+        
+        if (hasDropdown) {
+            e.preventDefault(); // Prevent Bootstrap's automatic data-bs-toggle behavior
+            e.stopPropagation(); // Prevent Level 1 handler
+            e.stopImmediatePropagation(); // Prevent all other handlers
+            
+            // Handle collapse manually to avoid Bootstrap's automatic accordion behavior
+            var $dropdown = $link.find('.dropdown');
+            var targetSelector = $dropdown.attr('data-bs-target');
+            var $targetCollapse = $(targetSelector);
+            var isCurrentlyCollapsed = $dropdown.hasClass('collapsed');
+            
+            if (isCurrentlyCollapsed) {
+                $targetCollapse.collapse('show');
+            } else {
+                $targetCollapse.collapse('hide');
+            }
+        } else if (hasNoDropdown) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            
+            var href = $link.attr('href');
+            if (href) {
+                window.location.hash = href.substring(1);
+            }
         }
     });
+    
+    // Removed debug catch-all handler to prevent event conflicts
+
+    // Bootstrap collapse events to keep caret states synchronized
+    $("#side-nav").on("shown.bs.collapse", ".collapse", function(e) {
+        var $collapse = $(this);
+        var targetId = $collapse.attr('id');
+        var $dropdown = $("#side-nav").find('.dropdown[data-target="#' + targetId + '"], .dropdown[data-bs-target="#' + targetId + '"]');
+        $dropdown.removeClass('collapsed').attr('aria-expanded', 'true');
+        
+        if (load_nav_data_handler) {
+            load_nav_data_handler($collapse);
+        }
+    });
+    
+    $("#side-nav").on("hidden.bs.collapse", ".collapse", function(e) {
+        var $collapse = $(this);
+        var targetId = $collapse.attr('id');
+        var $dropdown = $("#side-nav").find('.dropdown[data-target="#' + targetId + '"], .dropdown[data-bs-target="#' + targetId + '"]');
+        $dropdown.addClass('collapsed').attr('aria-expanded', 'false');
+    });
+    
+    
 
     $("html").on("error", "img", function() {
         $(this).hide();
@@ -1637,8 +1841,185 @@ $(function() {
         }
     }
     
+    // Function to refresh current navigation content
+    function refreshCurrentNavigation() {
+        var currentHash = window.location.hash;
+        var $sideNav = $("#side-nav");
+        var currentContent = $sideNav.html();
+        
+        // Only refresh if there's existing content
+        if (currentContent) {
+            var contentNav = '';
+            
+            // Extract the content navigation part (everything after mobile-main-nav div)
+            if (currentContent.indexOf('mobile-main-nav') !== -1) {
+                var mobileNavMatch = currentContent.match(/<div class="mobile-main-nav">.*?<\/div>(.*)/s);
+                contentNav = mobileNavMatch ? mobileNavMatch[1] : currentContent;
+            } else {
+                // No mobile nav found, use all content as content nav
+                contentNav = currentContent;
+            }
+            
+            // Regenerate with current screen size logic
+            $sideNav.html(createMobileNavigation(contentNav));
+        }
+    }
+    
+    // Mobile navigation functionality
+    function initMobileNavigation() {
+        // Mobile nav toggle
+        $('.mobile-nav-toggle').on('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleMobileNav();
+        });
+        
+        // Close mobile nav when clicking overlay
+        $('.mobile-nav-overlay').on('click', function() {
+            closeMobileNav();
+        });
+        
+        // Handle main navigation clicks in mobile menu
+        $(document).on('click', '.mobile-main-nav a[data-nav]', function(e) {
+            e.preventDefault();
+            var navType = $(this).data('nav');
+            var hash = $(this).attr('href');
+            
+            // Add active state to clicked button
+            $('.mobile-main-nav a').removeClass('active');
+            $(this).addClass('active');
+            
+            // Navigate to the section WITHOUT closing mobile nav
+            window.location.hash = hash;
+        });
+        
+        // Close mobile nav when clicking outside sidebar
+        $(document).on('click', function(e) {
+            if (window.innerWidth <= 767.98) {
+                var $target = $(e.target);
+                var isMenuOpen = $('#side-nav-container').hasClass('mobile-nav-open');
+                var isClickInsideSidebar = $target.closest('#side-nav-container').length > 0;
+                var isClickOnToggle = $target.closest('.mobile-nav-toggle').length > 0;
+                
+                if (isMenuOpen && !isClickInsideSidebar && !isClickOnToggle) {
+                    closeMobileNav();
+                }
+            }
+        });
+        
+        // Handle swipe gestures for mobile nav
+        var startX = null;
+        var startY = null;
+        
+        $(document).on('touchstart', function(e) {
+            if (window.innerWidth <= 767.98) {
+                var touch = e.originalEvent.touches[0];
+                startX = touch.clientX;
+                startY = touch.clientY;
+            }
+        });
+        
+        $(document).on('touchmove', function(e) {
+            if (window.innerWidth <= 767.98 && startX !== null) {
+                var touch = e.originalEvent.touches[0];
+                var currentX = touch.clientX;
+                var currentY = touch.clientY;
+                var deltaX = currentX - startX;
+                var deltaY = currentY - startY;
+                
+                // Detect horizontal swipe (more horizontal than vertical)
+                if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
+                    var isMenuOpen = $('#side-nav-container').hasClass('mobile-nav-open');
+                    
+                    // Swipe right to open (only if starting from left edge)
+                    if (deltaX > 0 && !isMenuOpen && startX < 50) {
+                        e.preventDefault();
+                        openMobileNav();
+                        startX = null;
+                        startY = null;
+                    }
+                    // Swipe left to close (only if menu is open)
+                    else if (deltaX < -50 && isMenuOpen) {
+                        e.preventDefault();
+                        closeMobileNav();
+                        startX = null;
+                        startY = null;
+                    }
+                }
+            }
+        });
+        
+        $(document).on('touchend', function() {
+            startX = null;
+            startY = null;
+        });
+        
+        // Handle window resize with debounce
+        var resizeTimeout;
+        $(window).on('resize', function() {
+            // Close mobile nav if window becomes desktop size
+            if (window.innerWidth > 767.98) {
+                closeMobileNav();
+            }
+            
+            // Debounce the refresh to avoid excessive calls
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(function() {
+                refreshCurrentNavigation();
+            }, 150);
+        });
+        
+        // Ensure mobile nav is closed on initial load if desktop size
+        if (window.innerWidth > 767.98) {
+            closeMobileNav();
+        }
+    }
+    
+    function toggleMobileNav() {
+        var $sidebar = $('#side-nav-container');
+        var $overlay = $('.mobile-nav-overlay');
+        var $body = $('body');
+        
+        if ($sidebar.hasClass('mobile-nav-open')) {
+            closeMobileNav();
+        } else {
+            openMobileNav();
+        }
+    }
+    
+    function openMobileNav() {
+        var $sidebar = $('#side-nav-container');
+        var $overlay = $('.mobile-nav-overlay');
+        var $body = $('body');
+        
+        $sidebar.addClass('mobile-nav-open');
+        $overlay.addClass('active');
+        $body.addClass('mobile-nav-open');
+        
+        // Ensure focus accessibility
+        $sidebar.attr('aria-hidden', 'false');
+        $('.mobile-nav-toggle').attr('aria-expanded', 'true');
+    }
+    
+    function closeMobileNav() {
+        var $sidebar = $('#side-nav-container');
+        var $overlay = $('.mobile-nav-overlay');
+        var $body = $('body');
+        
+        $sidebar.removeClass('mobile-nav-open');
+        $overlay.removeClass('active');
+        $body.removeClass('mobile-nav-open');
+        
+        // Ensure focus accessibility
+        $sidebar.attr('aria-hidden', 'true');
+        $('.mobile-nav-toggle').attr('aria-expanded', 'false');
+    }
+
     // Initialize dark mode
     initDarkMode();
+
+    // Initialize mobile navigation
+    initMobileNavigation();
 
     // We explicitly do NOT use var, for now, to facilitate inspection in Firebug.
     // (Our route handlers and such currently also rely on tome being global.)

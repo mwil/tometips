@@ -726,7 +726,27 @@ for i,mastery in ipairs(masteries) do
         end
         if #cost > 0 then t.cost = table.concat(cost, ", ") end
 
-        if t.image then t.image = t.image:gsub("talents/", "") end
+        if t.image then 
+            t.image = t.image:gsub("talents/", "")
+            
+            -- Fix corrupted talent image names
+            if t.image == "mutated_hereragegand.png" then
+                t.image = "mutated_hand.png"
+            elseif t.image == "lash_outrthrthrth.png" then
+                t.image = "lash_out.png"
+            elseif t.image == "tentaclesrsthrhrhrh_ground.png" then
+                t.image = "invoke_tentacle.png"
+            end
+            
+            -- Check if image file exists, use placeholder if not
+            local image_path = "html/img/talents/96/" .. t.image
+            local f = io.open(image_path, "r")
+            if not f then
+                t.image = "placeholder.png"  -- Use placeholder for missing images
+            else
+                f:close()
+            end
+        end
 
         if t.require then
             local new_require = {}
