@@ -1,14 +1,36 @@
-<ul id="nav-talents" class="nav">
+<div id="nav-talents" class="navigation-container">
     {{#if hasMinorChanges}}
-        <li><a href="#recent-changes/talents{{currentQuery}}"><span class="no-dropdown"></span>New in {{version}}</a></li>
+        <div class="mb-2">
+            <a href="#recent-changes/talents{{currentQuery}}" class="btn btn-outline-info btn-sm w-100">
+                ✨ New in {{version}}
+            </a>
+        </div>
     {{/if}}
     {{#if hasMajorChanges}}
-        <li><a href="#changes/talents{{currentQuery}}"><span class="no-dropdown"></span>New in {{majorVersion}}</a></li>
+        <div class="mb-2">
+            <a href="#changes/talents{{currentQuery}}" class="btn btn-outline-warning btn-sm w-100">
+                🆕 New in {{majorVersion}}
+            </a>
+        </div>
     {{/if}}
-    {{#each talent_categories}}
-        <li><a href="#talents/{{toHtmlId this}}{{currentQuery}}"><span data-bs-toggle="collapse" data-bs-target="#nav-{{toHtmlId this}}" class="dropdown collapsed" aria-expanded="false"></span>{{toTitleCase this}}</a>
-            <ul class="nav collapse" id="nav-{{toHtmlId this}}">
-                {{! Empty for now; will be populated later }}
-            </ul></li>
-    {{/each}}
-</ul>
+    <div class="accordion navigation-accordion ui-nav-talents-accordion" id="talents-navigation">
+        {{#each talent_categories}}
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="heading-{{toHtmlId this}}">
+                    <button class="accordion-button collapsed" type="button" 
+                            data-bs-toggle="collapse" data-bs-target="#nav-{{toHtmlId this}}" 
+                            aria-expanded="false" aria-controls="nav-{{toHtmlId this}}">
+                        <span class="me-2">🔮</span>
+                        {{toTitleCase this}}
+                    </button>
+                </h2>
+                <div id="nav-{{toHtmlId this}}" class="accordion-collapse collapse" 
+                     aria-labelledby="heading-{{toHtmlId this}}" data-bs-parent="#talents-navigation">
+                    <div class="accordion-body p-2">
+                        {{! Empty for now; will be populated later by JavaScript }}
+                    </div>
+                </div>
+            </div>
+        {{/each}}
+    </div>
+</div>

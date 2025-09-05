@@ -53,14 +53,14 @@
         <!-- Mobile navigation overlay -->
         <div class="mobile-nav-overlay d-md-none"></div>
         
-        <div id="side-nav-container" aria-hidden="true" role="navigation" aria-label="Main navigation">
+        <div id="side-nav-container" class="ui-nav-sidebar" role="navigation" aria-label="Main navigation">
             <div id="side-nav"></div>
         </div>
 
         <div id="content-container">
             <div id="content-header" class="pb-2 mb-3 border-bottom">
                 <!-- Mobile hamburger menu button -->
-                <button class="mobile-nav-toggle d-md-none" type="button" aria-label="Toggle navigation" aria-expanded="false" aria-controls="side-nav-container">
+                <button class="mobile-nav-toggle ui-nav-hamburger d-md-none" type="button" aria-label="Toggle navigation" aria-expanded="false" aria-controls="side-nav-container">
                     <span class="fa fa-bars"></span>
                 </button>
                 <h1><a href="#">ToME Tips</a></h1>
@@ -249,6 +249,12 @@
 
         <script src="js/plugins.js"></script>
 
+        <script src="js/core/config.js"></script>
+        <script src="js/core/utils.js"></script>
+        <script src="js/core/data-loader.js"></script>
+        <script src="js/features/search.js"></script>
+        <script src="js/features/version-management.js"></script>
+        <script src="js/features/ui-management.js"></script>
         <script src="js/main.js?v=1756612650"></script>
 
         <script src="js/partials.js"></script>
@@ -257,6 +263,11 @@
         <script src="js/classes.js"></script>
         <script src="js/races.js"></script>
         <script src="js/items.js"></script>
+        
+        <!-- Load routing and events after page-specific functions are available -->
+        <script src="js/features/routing.js"></script>
+        <script src="js/features/events.js"></script>
+        <script src="js/core/app.js"></script>
 
         <script>
             // Bootstrap 5 compatibility: Convert data-toggle to data-bs-toggle and fix accordion behavior

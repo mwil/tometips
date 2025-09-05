@@ -16,10 +16,16 @@ json:
 	$(LUA) spoilers.lua $(LUA)
 
 html/js/partials.js: html/js/partials/*.handlebars
-	handlebars --min --partial html/js/partials > $@
+	handlebars --min --partial -f $@ html/js/partials
 
 html/js/templates.js: html/js/templates/*.handlebars
-	handlebars --min html/js/templates > $@
+	handlebars --min -f $@ html/js/templates
+
+# CSS build system - concatenate modular CSS files
+html/css/main.css: html/css/base.css html/css/modules/*.css
+	cat html/css/base.css html/css/modules/*.css > $@
+
+css: html/css/main.css
 
 # Note: Partials are compiled separately into html/js/partials.js to avoid conflicts with templates.js
 # Templates go in html/js/templates.js, partials go in html/js/partials.js

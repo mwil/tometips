@@ -1,36 +1,63 @@
-<ul id="nav-items" class="nav">
+<div class="accordion navigation-accordion" id="items-navigation">
     {{#each categories}}
-        <li>
-            <a href="#items/{{id}}{{currentQuery}}">
-                <span class="dropdown collapsed" data-bs-toggle="collapse" data-bs-target="#nav-{{toHtmlId id}}" aria-expanded="false"></span>
-                {{name}} ({{count}})
-            </a>
-            <ul id="nav-{{toHtmlId id}}" class="nav collapse">
-                {{#each subcategories}}
-                    <li>
-                        <a href="#items/{{../id}}/{{id}}{{currentQuery}}">
-                            {{#if subgroups.length}}
-                                <span class="dropdown collapsed" data-bs-toggle="collapse" data-bs-target="#nav-{{toHtmlId ../id}}-{{toHtmlId id}}" aria-expanded="false"></span>
-                            {{else}}
-                                <span class="no-dropdown"></span>
-                            {{/if}}
-                            {{name}} ({{count}})
-                        </a>
-                        {{#if subgroups.length}}
-                            <ul id="nav-{{toHtmlId ../id}}-{{toHtmlId id}}" class="nav collapse">
-                                {{#each subgroups}}
-                                    <li>
-                                        <a href="#items/{{../../id}}/{{../id}}/{{id}}{{currentQuery}}">
-                                            <span class="no-dropdown"></span>
-                                            {{name}} ({{count}})
-                                        </a>
-                                    </li>
-                                {{/each}}
-                            </ul>
-                        {{/if}}
-                    </li>
-                {{/each}}
-            </ul>
-        </li>
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="heading-{{toHtmlId id}}">
+                <button class="accordion-button collapsed" type="button" 
+                        data-bs-toggle="collapse" data-bs-target="#nav-{{toHtmlId id}}" 
+                        aria-expanded="false" aria-controls="nav-{{toHtmlId id}}">
+                    <span class="me-2">🗡️</span>
+                    {{name}} ({{count}})
+                </button>
+            </h2>
+            <div id="nav-{{toHtmlId id}}" class="accordion-collapse collapse" 
+                 aria-labelledby="heading-{{toHtmlId id}}" data-bs-parent="#items-navigation">
+                <div class="accordion-body p-0">
+                    {{#if subcategories.length}}
+                        <div class="accordion nested-accordion" id="subcats-{{toHtmlId id}}">
+                            {{#each subcategories}}
+                                <div class="accordion-item border-0">
+                                    {{#if subgroups.length}}
+                                        <h3 class="accordion-header" id="heading-{{toHtmlId ../id}}-{{toHtmlId id}}">
+                                            <button class="accordion-button collapsed nested-button" type="button" 
+                                                    data-bs-toggle="collapse" data-bs-target="#nav-{{toHtmlId ../id}}-{{toHtmlId id}}" 
+                                                    aria-expanded="false" aria-controls="nav-{{toHtmlId ../id}}-{{toHtmlId id}}">
+                                                {{name}} ({{count}})
+                                            </button>
+                                        </h3>
+                                        <div id="nav-{{toHtmlId ../id}}-{{toHtmlId id}}" class="accordion-collapse collapse" 
+                                             aria-labelledby="heading-{{toHtmlId ../id}}-{{toHtmlId id}}" 
+                                             data-bs-parent="#subcats-{{toHtmlId ../id}}">
+                                            <div class="accordion-body p-0">
+                                                <div class="list-group list-group-flush">
+                                                    {{#each subgroups}}
+                                                        <a href="#items/{{../../id}}/{{../id}}/{{id}}{{currentQuery}}" 
+                                                           class="list-group-item list-group-item-action border-0 ps-4">
+                                                            {{name}} ({{count}})
+                                                        </a>
+                                                    {{/each}}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {{else}}
+                                        <div class="p-0">
+                                            <a href="#items/{{../id}}/{{id}}{{currentQuery}}" 
+                                               class="list-group-item list-group-item-action border-0">
+                                                {{name}} ({{count}})
+                                            </a>
+                                        </div>
+                                    {{/if}}
+                                </div>
+                            {{/each}}
+                        </div>
+                    {{else}}
+                        <div class="p-2">
+                            <a href="#items/{{id}}{{currentQuery}}" class="btn btn-link">
+                                View All {{name}}
+                            </a>
+                        </div>
+                    {{/if}}
+                </div>
+            </div>
+        </div>
     {{/each}}
-</ul>
+</div>

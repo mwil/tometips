@@ -484,7 +484,7 @@ const TalentAnalyzer = () => {
                     </span>
                   </td>
                   <td className={`p-2 text-center font-bold ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
-                    <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${
+                    <span className={`inline-flex items-center justify-center w-10 h-10 rounded-full text-lg font-bold ${
                       item.tier === 1 ? 'bg-green-500 text-white' :
                       item.tier === 2 ? 'bg-blue-500 text-white' :
                       item.tier === 3 ? 'bg-yellow-500 text-white' :

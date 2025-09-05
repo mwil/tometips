@@ -1,0 +1,54 @@
+/*
+ * CSS Variables for Light/Dark Theme System
+ * Core color and spacing variables used throughout the application
+ */
+
+:root {
+    /* Light mode (default) */
+    --bg-primary: #ffffff;
+    --bg-secondary: #f5f5f5;
+    --bg-tertiary: #e7e7e7;
+    --text-primary: #222222;
+    --text-secondary: #666666;
+    --text-muted: #999999;
+    --border-color: #dddddd;
+    --panel-bg: #ffffff;
+    --panel-header-bg: #f5f5f5;
+    --well-bg: #f5f5f5;
+    --link-color: #337ab7;
+    --link-hover: #23527c;
+    
+    /* Spacing Variables */
+    --content-padding: 20px;
+    --sidebar-width: 300px;
+    --header-height: 60px;
+    
+    /* Typography */
+    --font-size-base: 14px;
+    --font-size-large: 18px;
+    --font-size-small: 12px;
+    --line-height-base: 1.428571429;
+    
+    /* Z-index layers */
+    --z-sidebar: 1000;
+    --z-mobile-nav: 1100;
+    --z-dropdown: 1200;
+    --z-modal: 1300;
+    --z-tooltip: 1400;
+}
+
+[data-theme="dark"] {
+    /* Dark mode - matching sidebar color #272b30 */
+    --bg-primary: #272b30;
+    --bg-secondary: #343a40;
+    --bg-tertiary: #495057;
+    --text-primary: #e0e0e0;
+    --text-secondary: #b0b0b0;
+    --text-muted: #888888;
+    --border-color: #495057;
+    --panel-bg: #343a40;
+    --panel-header-bg: #495057;
+    --well-bg: #343a40;
+    --link-color: #66b3ff;
+    --link-hover: #ffa726;
+}

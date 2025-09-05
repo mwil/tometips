@@ -1,5 +1,5 @@
 function fixupClasses(tome) {
-  var data = getData();
+  var data = DATA_LOADER.getData();
     var c = data.classes;
 
     if (data.fixups.classes) {
@@ -29,11 +29,11 @@ function fixupClasses(tome) {
 }
 
 function navClasses(tome) {
-    return Handlebars.templates.class_nav(getData().classes);
+    return Handlebars.templates.class_nav(DATA_LOADER.getData().classes);
 }
 
 function listClasses(tome, cls) {
-    var classData = JSON.parse(JSON.stringify(getData().classes.classes_by_id[cls])); // Deep clone to avoid modifying original
+    var classData = JSON.parse(JSON.stringify(DATA_LOADER.getData().classes.classes_by_id[cls])); // Deep clone to avoid modifying original
     
     // Sort talent types for each subclass to put locked ones at the bottom
     if (classData && classData.subclass_list) {
@@ -68,7 +68,7 @@ function listClasses(tome, cls) {
 }
 
 function fillClassTalents(tome, cls, callback) {
-    var data = getData();
+    var data = DATA_LOADER.getData();
     var subclasses = data.classes.classes_by_id[cls].subclass_list,
         load_talents = {};
 
@@ -125,10 +125,10 @@ function fillClassTalents(tome, cls, callback) {
     }
 
     _.each(load_talents, function(talents, category, list) {
-        loadDataIfNeeded('talents.' + category, function() {
+        DATA_LOADER.loadDataIfNeeded('talents.' + category, function() {
             _.each(talents, function(value, this_type, list) {
                 // TODO: Should index talents by talent_type as well as sequential list to avoid the need to use _.find
-                var talent_details = _.find(getData().talents[category], function(t) { return t.type == this_type; });
+                var talent_details = _.find(DATA_LOADER.getData().talents[category], function(t) { return t.type == this_type; });
                 
                 // Individual talents within each tree maintain their original order
                 // The real "locked" concept applies to talent trees, not individual talents
@@ -192,8 +192,8 @@ function setupTalentModalHandlers() {
         
         // Find the specific talent data
         var category = talentType.split('/')[0];
-        loadDataIfNeeded('talents.' + category, function() {
-            var talentTree = _.find(getData().talents[category], function(t) { return t.type == talentType; });
+        DATA_LOADER.loadDataIfNeeded('talents.' + category, function() {
+            var talentTree = _.find(DATA_LOADER.getData().talents[category], function(t) { return t.type == talentType; });
             if (talentTree && talentTree.talents) {
                 var individualTalent = _.find(talentTree.talents, function(t) { return t.id == talentId; });
                 if (individualTalent) {
@@ -208,8 +208,8 @@ function setupTalentModalHandlers() {
 function loadIndividualTalentData(talentId, talentType, talentName) {
     var category = talentType.split('/')[0];
     
-    loadDataIfNeeded('talents.' + category, function() {
-        var talentTree = _.find(getData().talents[category], function(t) { return t.type == talentType; });
+    DATA_LOADER.loadDataIfNeeded('talents.' + category, function() {
+        var talentTree = _.find(DATA_LOADER.getData().talents[category], function(t) { return t.type == talentType; });
         
         if (talentTree && talentTree.talents) {
             var individualTalent = _.find(talentTree.talents, function(t) { return t.id == talentId; });
@@ -238,8 +238,8 @@ function loadIndividualTalentData(talentId, talentType, talentName) {
 function loadTalentModalData(talentType, displayName) {
     var category = talentType.split('/')[0];
     
-    loadDataIfNeeded('talents.' + category, function() {
-        var talentTree = _.find(getData().talents[category], function(t) { return t.type == talentType; });
+    DATA_LOADER.loadDataIfNeeded('talents.' + category, function() {
+        var talentTree = _.find(DATA_LOADER.getData().talents[category], function(t) { return t.type == talentType; });
         
         if (talentTree) {
             // Store current talent type for individual talent clicks
@@ -287,7 +287,7 @@ function showTalentModal(talentData) {
 
 /**loadDataIfNeeded for classes */
 function loadClassesIfNeeded(success) {
-    loadDataIfNeeded('classes', function(data) {
+    DATA_LOADER.loadDataIfNeeded('classes', function(data) {
         fixupClasses(tome);
         success(data);
     });
@@ -298,7 +298,7 @@ function showSimpleTalentPopup(talentId, talentType, talentName) {
     // Create popup HTML if it doesn't exist
     if (!$('#talent-popup-overlay').length) {
         $('body').append(`
-            <div id="talent-popup-overlay">
+            <div id="talent-popup-overlay" class="ui-popup-talent">
                 <div id="talent-popup">
                     <div class="popup-header">
                         <h3 id="talent-popup-title">Loading...</h3>
@@ -337,6 +337,16 @@ function showSimpleTalentPopup(talentId, talentType, talentName) {
     
     // Show popup
     $('#talent-popup-overlay').show();
+    
+    // Debug: Log popup dimensions for mobile testing
+    console.log('Mobile popup debug:', {
+        popupWidth: $('#talent-popup').outerWidth(),
+        popupHeight: $('#talent-popup').outerHeight(),
+        viewportWidth: window.innerWidth,
+        viewportHeight: window.innerHeight,
+        computedMaxWidth: $('#talent-popup').css('max-width'),
+        computedMaxHeight: $('#talent-popup').css('max-height')
+    });
     // Create link to the specific talent page - format matches template: #talents/type/talent_id_html_encoded
     // Use toUnsafeHtmlId for talent type and toHtmlId for talent ID (matches template logic)
     var talentUrl = '#talents/' + toUnsafeHtmlId(talentType) + '/' + toHtmlId(talentId);
@@ -356,7 +366,7 @@ function loadSimpleTalentData(talentId, talentType, talentName) {
     var category = talentType.split('/')[0];
     
     // Check if data exists first
-    var data = getData();
+    var data = DATA_LOADER.getData();
     if (!data.talents) {
         $('#talent-popup-content').html('<p style="color: #ff6b6b;">Error: No talent data loaded.</p>');
         return;
@@ -367,8 +377,8 @@ function loadSimpleTalentData(talentId, talentType, talentName) {
         return;
     }
     
-    loadDataIfNeeded('talents.' + category, function() {
-        var talentTree = _.find(getData().talents[category], function(t) { return t.type == talentType; });
+    DATA_LOADER.loadDataIfNeeded('talents.' + category, function() {
+        var talentTree = _.find(DATA_LOADER.getData().talents[category], function(t) { return t.type == talentType; });
         
         if (talentTree && talentTree.talents) {
             var individualTalent = _.find(talentTree.talents, function(t) { return t.id == talentId; });
@@ -385,41 +395,62 @@ function loadSimpleTalentData(talentId, talentType, talentName) {
 }
 
 function displaySimpleTalentData(talent) {
+    // Update the popup title to include the talent icon (card-style header)
+    updateTalentPopupHeader(talent);
+    
     var html = '';
     
-    // Add talent image (using 96px for better detail in popup)
-    if (talent.image) {
-        html += '<img src="img/talents/96/' + talent.image + '" style="float: left; margin: 8px 24px 16px 8px;" onerror="talentImgError(this)">';
+    // Add stats table (without floating image since it's now in the header)
+    if (talent.mode || talent.cost || talent.range || talent.cooldown || talent.use_speed) {
+        html += '<table style="border: none; background: transparent; margin-bottom: 15px; width: 100%;">';
+        
+        if (talent.mode) {
+            html += '<tr><td style="border: none; padding: 4px 0; width: 120px; font-weight: bold; background: transparent;">Use Mode:</td><td style="border: none; padding: 4px 0; background: transparent;">' + talent.mode + '</td></tr>';
+        }
+        
+        if (talent.cost) {
+            html += '<tr><td style="border: none; padding: 4px 0; width: 120px; font-weight: bold; background: transparent;">Cost:</td><td style="border: none; padding: 4px 0; background: transparent;">' + talent.cost + '</td></tr>';
+        }
+        
+        if (talent.range) {
+            html += '<tr><td style="border: none; padding: 4px 0; width: 120px; font-weight: bold; background: transparent;">Range:</td><td style="border: none; padding: 4px 0; background: transparent;">' + talent.range + '</td></tr>';
+        }
+        
+        if (talent.cooldown) {
+            html += '<tr><td style="border: none; padding: 4px 0; width: 120px; font-weight: bold; background: transparent;">Cooldown:</td><td style="border: none; padding: 4px 0; background: transparent;">' + talent.cooldown + '</td></tr>';
+        }
+        
+        if (talent.use_speed) {
+            html += '<tr><td style="border: none; padding: 4px 0; width: 120px; font-weight: bold; background: transparent;">Use Speed:</td><td style="border: none; padding: 4px 0; background: transparent;">' + talent.use_speed + '</td></tr>';
+        }
+        
+        html += '</table>';
+        
+        // Add separator line between stats and description
+        html += '<hr style="border: 0; height: 1px; background: #ddd; margin: 15px 0;">';
     }
     
-    // Add basic info in a table structure that respects the float
-    html += '<table style="border: none; background: transparent; margin-bottom: 15px;">';
-    
-    if (talent.mode) {
-        html += '<tr><td style="border: none; padding: 2px 0; width: 120px; font-weight: bold; background: transparent;">Use Mode:</td><td style="border: none; padding: 2px 0; background: transparent;">' + talent.mode + '</td></tr>';
-    }
-    
-    if (talent.cost) {
-        html += '<tr><td style="border: none; padding: 2px 0; width: 120px; font-weight: bold; background: transparent;">Cost:</td><td style="border: none; padding: 2px 0; background: transparent;">' + talent.cost + '</td></tr>';
-    }
-    
-    if (talent.range) {
-        html += '<tr><td style="border: none; padding: 2px 0; width: 120px; font-weight: bold; background: transparent;">Range:</td><td style="border: none; padding: 2px 0; background: transparent;">' + talent.range + '</td></tr>';
-    }
-    
-    if (talent.cooldown) {
-        html += '<tr><td style="border: none; padding: 2px 0; width: 120px; font-weight: bold; background: transparent;">Cooldown:</td><td style="border: none; padding: 2px 0; background: transparent;">' + talent.cooldown + '</td></tr>';
-    }
-    
-    if (talent.use_speed) {
-        html += '<tr><td style="border: none; padding: 2px 0; width: 120px; font-weight: bold; background: transparent;">Use Speed:</td><td style="border: none; padding: 2px 0; background: transparent;">' + talent.use_speed + '</td></tr>';
-    }
-    
-    html += '</table>';
-    
+    // Add description
     if (talent.info_text) {
-        html += '<div style="clear: both; margin-top: 15px;"><strong>Description:</strong><br>' + talent.info_text + '</div>';
+        html += '<div>' + talent.info_text + '</div>';
     }
     
     $('#talent-popup-content').html(html);
+}
+
+function updateTalentPopupHeader(talent) {
+    // Create card-style header with icon and name
+    var displaySize = (typeof imgSizeSettings !== 'undefined') ? imgSizeSettings.get() : 48;
+    var headerHtml = '';
+    
+    // Add talent icon inline with the title
+    if (talent.image) {
+        headerHtml += '<img width="' + displaySize + '" height="' + displaySize + '" src="img/talents/96/' + talent.image + '" style="vertical-align: middle; margin-right: 12px; width: ' + displaySize + 'px !important; height: ' + displaySize + 'px !important;" onerror="talentImgError(this)">';
+    }
+    
+    // Add talent name as a link (preserving existing functionality)
+    var talentUrl = '#talents/' + toUnsafeHtmlId(talent.type || '') + '/' + toHtmlId(talent.id || '');
+    headerHtml += '<a href="' + talentUrl + '" class="talent-popup-link" style="vertical-align: middle; text-decoration: none; color: inherit;">' + (talent.name || 'Unknown Talent') + '</a>';
+    
+    $('#talent-popup-title').html(headerHtml);
 }

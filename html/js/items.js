@@ -413,7 +413,7 @@ function showItemPopup(itemId, itemName) {
     // Create popup HTML if it doesn't exist
     if (!$('#item-popup-overlay').length) {
         $('body').append(`
-            <div id="item-popup-overlay">
+            <div id="item-popup-overlay" class="ui-popup-item">
                 <div id="item-popup">
                     <div class="popup-header">
                         <h3 id="item-popup-title">Loading...</h3>
@@ -860,5 +860,28 @@ function displayItemData(item) {
         html += '<div style="margin-top: 15px; font-style: italic; text-align: center; color: #aaa;">' + item.flavor_name + '</div>';
     }
     
+    // Add collapsible raw JSON section at the end
+    html += '<div style="margin-top: 30px; border-top: 1px solid #444; padding-top: 15px;">';
+    html += '<div style="cursor: pointer; padding: 8px; background: #2a2a2a; border: 1px solid #555; border-radius: 4px; user-select: none;" onclick="toggleItemJsonDisplay()">';
+    html += '<span id="json-toggle-icon">▼</span> <strong>Raw Item Data (JSON)</strong>';
+    html += '</div>';
+    html += '<div id="item-json-display" style="display: none; margin-top: 10px; padding: 15px; background: #1a1a1a; border: 1px solid #555; border-radius: 4px; font-family: monospace; font-size: 12px; line-height: 1.4; max-height: 400px; overflow-y: auto;">';
+    html += '<pre style="margin: 0; color: #e0e0e0; white-space: pre-wrap; word-wrap: break-word;">' + JSON.stringify(item, null, 2) + '</pre>';
+    html += '</div>';
+    html += '</div>';
+    
     $('#item-popup-content').html(html);
+}
+
+function toggleItemJsonDisplay() {
+    var jsonDisplay = $('#item-json-display');
+    var toggleIcon = $('#json-toggle-icon');
+    
+    if (jsonDisplay.is(':visible')) {
+        jsonDisplay.slideUp(200);
+        toggleIcon.text('▼');
+    } else {
+        jsonDisplay.slideDown(200);
+        toggleIcon.text('▲');
+    }
 }

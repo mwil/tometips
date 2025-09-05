@@ -48,7 +48,7 @@
                         <td data-label="WIL">{{statValue stats.wil}}</td>
                         <td data-label="CUN">{{statValue stats.cun}}</td>
                         <td data-label="Life/Lvl">{{statValue copy.life_rating}}</td>
-                        <td data-label="XP Penalty">{{#if exp_penalty}}{{statValue (negate exp_penalty)}}%{{else}}0%{{/if}}</td>
+                        <td data-label="XP Penalty">{{xpPenalty exp_penalty}}%</td>
                     </tr>
                 </tbody>
             </table>

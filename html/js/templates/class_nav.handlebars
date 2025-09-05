@@ -1,18 +1,27 @@
-<ul id="nav-classes" class="nav">
-{{!--
-    {{#if hasMinorChanges}}
-        <li><a href="#recent-changes/talents{{currentQuery}}"><span class="no-dropdown"></span>New in {{version}}</a></li>
-    {{/if}}
-    {{#if hasMajorChanges}}
-        <li><a href="#changes/talents{{currentQuery}}"><span class="no-dropdown"></span>New in {{majorVersion}}</a></li>
-    {{/if}}
---}}
+<div class="accordion navigation-accordion ui-nav-classes-accordion" id="classes-navigation">
     {{#each class_list}}
-        <li><a href="#classes/{{toHtmlId short_name}}{{currentQuery}}"><span data-bs-toggle="collapse" data-bs-target="#nav-{{toHtmlId short_name}}" class="dropdown collapsed" aria-expanded="false"></span>{{toTitleCase display_name}}</a>
-            <ul class="nav collapse" id="nav-{{toHtmlId short_name}}">
-                {{#each subclass_list}}
-                    <li><a href="#classes/{{toHtmlId ../short_name}}/{{toHtmlId short_name}}{{currentQuery}}">{{toTitleCase display_name}}</a></li>
-                    {{/each}}
-            </ul></li>
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="heading-{{toHtmlId short_name}}">
+                <button class="accordion-button collapsed" type="button" 
+                        data-bs-toggle="collapse" data-bs-target="#nav-{{toHtmlId short_name}}" 
+                        aria-expanded="false" aria-controls="nav-{{toHtmlId short_name}}">
+                    <span class="me-2">⚔️</span>
+                    {{toTitleCase display_name}}
+                </button>
+            </h2>
+            <div id="nav-{{toHtmlId short_name}}" class="accordion-collapse collapse" 
+                 aria-labelledby="heading-{{toHtmlId short_name}}" data-bs-parent="#classes-navigation">
+                <div class="accordion-body p-0">
+                    <div class="list-group list-group-flush">
+                        {{#each subclass_list}}
+                            <a href="#classes/{{toHtmlId ../short_name}}/{{toHtmlId short_name}}{{currentQuery}}" 
+                               class="list-group-item list-group-item-action border-0">
+                                {{toTitleCase display_name}}
+                            </a>
+                        {{/each}}
+                    </div>
+                </div>
+            </div>
+        </div>
     {{/each}}
-</ul>
+</div>

@@ -1,5 +1,8 @@
 TODO:
 - Check for other paths that could open several collapsibles in the #talents page
+- check that the old accordions are not causing issues with Bootstrap 5 and are just working by accident. We should port them to our new style as well.
+- Talent popups should use the while screen in mobile mode, and be bigger in normal mode
+- new  col xp penalty should use less decimals, and needs to be x100 to be actual percentage
 
 Improve search list:
 - Clear it more (after accepted solution)

@@ -1,5 +1,5 @@
 function fixupRaces(tome) {
-    var data = getData();
+    var data = DATA_LOADER.getData();
     var r = data.races;
 
     if (data.fixups.races) {
@@ -55,11 +55,11 @@ function fixupRaces(tome) {
 }
 
 function navRaces(tome) {
-    return Handlebars.templates.race_nav(getData().races);
+    return Handlebars.templates.race_nav(DATA_LOADER.getData().races);
 }
 
 function listRaces(tome, r) {
-    var data = getData();
+    var data = DATA_LOADER.getData();
     var race = data.races.races_by_id[r];
     
     // Mapping table for race short names to talent type names
@@ -80,16 +80,19 @@ function listRaces(tome, r) {
         var raceTalentType;
         
         if (mapping) {
-            if (typeof mapping === 'object') {
+            if (typeof mapping === 'object' && mapping.category && mapping.name) {
                 // Handle category mapping (e.g., undead/ghoul)
                 raceTalentType = mapping.category + '/' + mapping.name;
-            } else {
+            } else if (typeof mapping === 'string' && mapping) {
                 // Handle simple string mapping (e.g., race/whitehooves)
                 raceTalentType = 'race/' + mapping;
+            } else {
+                // Fallback to default if mapping is malformed
+                raceTalentType = 'race/' + (baseName || 'unknown');
             }
         } else {
             // Default: race category
-            raceTalentType = 'race/' + baseName;
+            raceTalentType = 'race/' + (baseName || 'unknown');
         }
         
         // Create talent data structure similar to classes
@@ -110,7 +113,7 @@ function listRaces(tome, r) {
 
 /**loadDataIfNeeded for races */
 function loadRacesIfNeeded(success) {
-    loadDataIfNeeded('races', function(data) {
+    DATA_LOADER.loadDataIfNeeded('races', function(data) {
         fixupRaces(tome);
         success(data);
     });
@@ -125,7 +128,7 @@ function handleUnknownRace(tome, r) {
 }
 
 function fillRaceTalents(tome, r, callback) {
-    var data = getData();
+    var data = DATA_LOADER.getData();
     var race = data.races.races_by_id[r];
     var subraces = race.subrace_list;
     
@@ -194,28 +197,33 @@ function fillRaceTalents(tome, r, callback) {
             var talentDataCategory;
             
             if (mapping) {
-                if (typeof mapping === 'object') {
+                if (typeof mapping === 'object' && mapping.category && mapping.name) {
                     // Handle category mapping (e.g., undead/ghoul)
                     raceTalentType = mapping.category + '/' + mapping.name;
                     talentCategory = 'talents.' + mapping.category;
                     talentDataCategory = mapping.category;
-                } else {
+                } else if (typeof mapping === 'string' && mapping) {
                     // Handle simple string mapping (e.g., race/whitehooves)
                     raceTalentType = 'race/' + mapping;
+                    talentCategory = 'talents.race';
+                    talentDataCategory = 'race';
+                } else {
+                    // Fallback to default if mapping is malformed
+                    raceTalentType = 'race/' + (baseName || 'unknown');
                     talentCategory = 'talents.race';
                     talentDataCategory = 'race';
                 }
             } else {
                 // Default: race category
-                raceTalentType = 'race/' + baseName;
+                raceTalentType = 'race/' + (baseName || 'unknown');
                 talentCategory = 'talents.race';
                 talentDataCategory = 'race';
             }
             
             // Load the talents from the appropriate category
-            loadDataIfNeeded(talentCategory, function() {
+            DATA_LOADER.loadDataIfNeeded(talentCategory, function() {
                 // Find the talent tree that matches this race
-                var talentData = getData().talents[talentDataCategory];
+                var talentData = DATA_LOADER.getData().talents[talentDataCategory];
                 var talent_details = _.find(talentData, function(t) { 
                     return t.type == raceTalentType; 
                 });

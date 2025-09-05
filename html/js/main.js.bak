@@ -142,13 +142,6 @@ var options = {
 ///Simplistic title-case function that capitalizes the beginning of every word.
 function toTitleCase(s)
 {
-    // Handle null/undefined values
-    if (!s && s !== 0) {
-        return '';
-    }
-    // Convert to string if it's not already
-    s = String(s);
-    
     var never_capitalize = {
         // Fix problems like "Berserker's"
         "s":true,
@@ -260,17 +253,11 @@ Handlebars.registerHelper('toTitleCase', function(context, options) {
 });
 
 Handlebars.registerHelper('toLowerCase', function(context, options) {
-    if (!context && context !== 0) {
-        return '';
-    }
-    return String(context).toLowerCase();
+    return context.toLowerCase();
 });
 
 Handlebars.registerHelper('capitalize', function(context, options) {
-    if (!context && context !== 0) {
-        return '';
-    }
-    context = String(context);
+    if (!context) return '';
     return context.charAt(0).toUpperCase() + context.slice(1);
 });
 
@@ -301,9 +288,6 @@ Handlebars.registerHelper('toUnsafeHtmlId', toUnsafeHtmlId);
 
 // ToME-specific function that tries to make a name or ID into a te4.org wiki page name
 Handlebars.registerHelper('toWikiPage', function(context, options) {
-   if (!context && context !== 0) {
-       return '';
-   }
    return toTitleCase(context).replace(' ', '_');
 });
 
@@ -378,24 +362,6 @@ Handlebars.registerHelper('statValue', function(value) {
     }
 });
 
-Handlebars.registerHelper('xpPenalty', function(value) {
-    if (!value || value === 0) {
-        return new Handlebars.SafeString('<span class="stat-neutral">0</span>');
-    }
-    
-    // Convert to percentage (multiply by 100) and round to integer
-    var percent = Math.round(value * 100);
-    var display = (percent >= 0 ? '+' : '') + percent;
-    
-    if (percent === 0) {
-        return new Handlebars.SafeString('<span class="stat-neutral">' + display + '</span>');
-    } else if (percent > 0) {
-        return new Handlebars.SafeString('<span class="stat-penalty">' + display + '</span>');
-    } else {
-        return new Handlebars.SafeString('<span class="stat-bonus">' + display + '</span>');
-    }
-});
-
 Handlebars.registerHelper('textStat', function(desc, value) {
     return new Handlebars.SafeString('<dt>' + desc + ':</dt><dd><span class="stat-neutral">' + value + '</span></dd>');
 });
@@ -429,12 +395,346 @@ var routes,
     load_nav_data_handler,
     base_title = document.title;
 
-// MOVED: Routing system moved to features/routing.js
 function initializeRoutes() {
-    if (typeof ROUTING !== 'undefined') {
-        return ROUTING.initializeRoutes();
+    routes = {
+
+        // Default route - redirect to classes overview
+        default_route: crossroads.addRoute(':?query:', function(query) {
+            // Redirect to classes overview instead of showing news
+            hasher.replaceHash('classes' + (query ? '?' + query : ''));
+        }),
+
+        // Updates for previous versions of the site.
+        reroute1: crossroads.addRoute('changes/talents?ver=1.2.0dev', function() {
+            hasher.replaceHash('changes/talents?ver=master');
+        }),
+
+        changes_talents: crossroads.addRoute('changes/talents:?query:', function(query) {
+            routes.talents.matched.dispatch(query);
+
+            $("#content-container").scrollTop(0);
+            DATA_LOADER.loadDataIfNeeded('changes.talents', function() {
+                document.title += ' - New in ' + DATA_LOADER.getData().majorVersion;
+                $("#content").html(listChangesTalents(tome));
+
+                enableTalentTooltips();
+                updateFinished();
+            });
+        }),
+
+        recent_changes_talents: crossroads.addRoute('recent-changes/talents:?query:', function(query) {
+            // TODO: Remove duplication with changes_talents route
+            routes.talents.matched.dispatch(query);
+
+            $("#content-container").scrollTop(0);
+            DATA_LOADER.loadDataIfNeeded('recent-changes.talents', function() {
+                document.title += ' - New in ' + DATA_LOADER.getData().version;
+                $("#content").html(listRecentChangesTalents(tome));
+
+                enableTalentTooltips();
+                updateFinished();
+            });
+        }),
+
+        talents: crossroads.addRoute('talents:?query:', function(query) {
+            versions.update(query);
+            document.title = base_title + ' - Talents';
+            setActiveNav("#talents");
+
+            if (!$("#nav-talents").length) {
+                DATA_LOADER.loadDataIfNeeded('', function() {
+                    $("#side-nav").html(createMobileNavigation(navTalents(tome)));
+                    load_nav_data_handler = loadNavTalents;
+                    $("#content").html($("#news").html());
+                });
+            }
+        }),
+
+        talents_category: crossroads.addRoute("talents/{category}:?query:", function(category, query) {
+            
+            routes.talents.matched.dispatch(query);
+            document.title += ' - ' + toTitleCase(category);
+
+            $("#content-container").scrollTop(0);
+            DATA_LOADER.loadDataIfNeeded('talents.' + category, function() {
+                
+                var this_nav = "#nav-" + category;
+                showCollapsedWithAccordion(this_nav);
+
+                fillNavTalents(tome, category);
+                $("#content").html(listTalents(tome, category));
+                UTILS.scrollToId();
+
+                // Convert Bootstrap 3 attributes to Bootstrap 5 for talent panels
+                if (typeof convertBootstrapAttributes === 'function') {
+                    convertBootstrapAttributes();
+                }
+                
+
+                var expandingAll = false;
+                
+                $(".expand-all").on('click', function() {
+                    expandingAll = true;
+                    setTimeout(function() { expandingAll = false; }, 1000);
+                });
+                
+                var isScrolling = false;
+                $(document).on('shown.bs.collapse', '.talent-details.collapse', function () {
+                    
+                    if (expandingAll || isScrolling) return;
+                    
+                    var $panel = $(this);
+                    var $contentContainer = $("#content-container");
+                    
+                    // Use setTimeout to ensure panel is fully expanded
+                    setTimeout(function() {
+                        if (isScrolling) return;
+                        isScrolling = true;
+                        
+                        var panelTop = $panel.offset().top;
+                        var panelHeight = $panel.outerHeight();
+                        var panelBottom = panelTop + panelHeight;
+                        
+                        var containerScrollTop = $contentContainer.scrollTop();
+                        var containerTop = $contentContainer.offset().top;
+                        var containerHeight = $contentContainer.height();
+                        var containerBottom = containerTop + containerHeight;
+                        
+                        // Check if panel extends beyond visible area
+                        if (panelBottom > containerBottom) {
+                            var targetScroll = containerScrollTop + (panelBottom - containerBottom) + 20;
+                            
+                            $contentContainer.animate({
+                                scrollTop: targetScroll
+                            }, 300, function() {
+                                isScrolling = false;
+                            });
+                        } else {
+                            isScrolling = false;
+                        }
+                    }, 50);
+                });
+
+                enableTalentTooltips();
+
+                fillTalentAvailability(tome, category);
+                updateFinished();
+            });
+        }),
+
+        talents_category_type: crossroads.addRoute("talents/{category}/{type}:?query:", function(category, type, query) {
+            routes.talents_category.matched.dispatch(category, query);
+        }),
+
+        talents_category_type_id: crossroads.addRoute("talents/{category}/{type}/{talent_id}:?query:", function(category, type, talent_id, query) {
+            // Load the category page - it will automatically call scrollToId() when done
+            // The scrollToId() function will find the element with ID: talents/category/type/talent_id
+            routes.talents_category.matched.dispatch(category, query);
+        }),
+
+        races: crossroads.addRoute('races:?query:', function(query) {
+            versions.update(query);
+            document.title += ' - Races';
+            setActiveNav("#races");
+
+            if (!$("#nav-races").length) {
+                loadRacesIfNeeded(function() {
+                    $("#side-nav").html(createMobileNavigation(navRaces(tome)));
+                    load_nav_data_handler = false;
+                    $("#content").html($("#news").html());
+                });
+            }
+        }),
+
+        races_race: crossroads.addRoute("races/{r}:?query:", function(r, query) {
+            versions.update(query);
+
+            loadRacesIfNeeded(function() {
+                routes.races.matched.dispatch(query);
+
+                var data = DATA_LOADER.getData();
+                if (!data.races.races_by_id[r]) {
+                    handleUnknownRace(tome, r);
+                    return;
+                }
+
+                document.title += ' - ' + data.races.races_by_id[r].display_name;
+
+                $("#content-container").scrollTop(0);
+
+                var this_nav = "#nav-" + r;
+                showCollapsedWithAccordion(this_nav);
+
+                $("#content").html(listRaces(tome, r));
+                
+                fillRaceTalents(tome, r, function() {
+                    // All race talent data has loaded, now scroll to the target
+                    UTILS.scrollToId();
+                });
+
+                updateFinished();
+            });
+        }),
+
+        races_race_subrace: crossroads.addRoute("races/{r}/{subrace}:?query:", function(r, subrace, query) {
+            // For subrace routes, load the parent race page but skip the scroll-to-top behavior
+            versions.update(query);
+
+            loadRacesIfNeeded(function() {
+                routes.races.matched.dispatch(query);
+
+                var data = DATA_LOADER.getData();
+                if (!data.races.races_by_id[r]) {
+                    handleUnknownRace(tome, r);
+                    return;
+                }
+
+                document.title += ' - ' + data.races.races_by_id[r].display_name;
+
+                // Skip the scrollTop(0) for subrace navigation
+
+                var this_nav = "#nav-" + r;
+                showCollapsedWithAccordion(this_nav);
+
+                $("#content").html(listRaces(tome, r));
+                
+                fillRaceTalents(tome, r, function() {
+                    // All race talent data has loaded, now scroll to the target
+                    UTILS.scrollToId();
+                });
+
+                updateFinished();
+            });
+        }),
+
+        classes: crossroads.addRoute('classes:?query:', function(query) {
+            versions.update(query);
+            document.title += ' - Classes';
+            setActiveNav("#classes");
+
+            if (!$("#nav-classes").length) {
+                loadClassesIfNeeded(function() {
+                    $("#side-nav").html(createMobileNavigation(navClasses(tome)));
+                    load_nav_data_handler = false;
+                    $("#content").html($("#news").html());
+                });
+            }
+        }),
+
+        classes_class: crossroads.addRoute("classes/{cls}:?query:", function(cls, query) {
+            versions.update(query);
+
+            loadClassesIfNeeded(function() {
+                routes.classes.matched.dispatch(query);
+                document.title += ' - ' + DATA_LOADER.getData().classes.classes_by_id[cls].display_name;
+
+                $("#content-container").scrollTop(0);
+
+                var this_nav = "#nav-" + cls;
+                showCollapsedWithAccordion(this_nav);
+
+                $("#content").html(listClasses(tome, cls));
+                
+                fillClassTalents(tome, cls, function() {
+                    // All class talent data has loaded, now scroll to the target
+                    UTILS.scrollToId();
+                });
+
+                updateFinished();
+            });
+        }),
+
+        classes_class_subclass: crossroads.addRoute("classes/{cls}/{subclass}:?query:", function(cls, subclass, query) {
+            // For subclass routes, load the parent class page but skip the scroll-to-top behavior
+            versions.update(query);
+
+            loadClassesIfNeeded(function() {
+                routes.classes.matched.dispatch(query);
+                document.title += ' - ' + DATA_LOADER.getData().classes.classes_by_id[cls].display_name;
+
+                // Skip the scrollTop(0) for subclass navigation
+                
+                var this_nav = "#nav-" + cls;
+                showCollapsedWithAccordion(this_nav);
+
+                $("#content").html(listClasses(tome, cls));
+                
+                fillClassTalents(tome, cls, function() {
+                    // All class talent data has loaded, now scroll to the target
+                    UTILS.scrollToId();
+                });
+
+                updateFinished();
+            });
+        }),
+
+        items: crossroads.addRoute('items:?query:', function(query) {
+            versions.update(query);
+            document.title = base_title + ' - Items';
+            setActiveNav("#items");
+
+            if (!$("#nav-items").length) {
+                loadItemsData().then(function() {
+                    $("#side-nav").html(createMobileNavigation(navItems()));
+                    load_nav_data_handler = false;
+                    $("#content").html(listItems('all'));
+                });
+            }
+        }),
+
+        items_category: crossroads.addRoute("items/{category}:?query:", function(category, query) {
+            routes.items.matched.dispatch(query);
+            document.title += ' - ' + toTitleCase(category);
+
+            $("#content-container").scrollTop(0);
+            loadItemsData().then(function() {
+                var this_nav = "#nav-" + category;
+                showCollapsedWithAccordion(this_nav);
+
+                $("#content").html(listItems(category));
+                UTILS.scrollToId();
+                updateFinished();
+            });
+        }),
+
+        items_subcategory: crossroads.addRoute("items/{category}/{subcategory}:?query:", function(category, subcategory, query) {
+            routes.items.matched.dispatch(query);
+            document.title += ' - ' + toTitleCase(category) + ' - ' + toTitleCase(subcategory);
+
+            $("#content-container").scrollTop(0);
+            loadItemsData().then(function() {
+                var this_nav = "#nav-" + category + "-" + subcategory;
+                showCollapsedWithAccordion(this_nav);
+
+                $("#content").html(listItems(category, subcategory));
+                UTILS.scrollToId();
+                updateFinished();
+            });
+        }),
+
+        items_subgroup: crossroads.addRoute("items/{category}/{subcategory}/{subgroup}:?query:", function(category, subcategory, subgroup, query) {
+            routes.items_subcategory.matched.dispatch(category, subcategory, query);
+        }),
+
+        items_item: crossroads.addRoute("items/{category}/{itemId}:?query:", function(category, itemId, query) {
+            routes.items_category.matched.dispatch(category, query);
+        })
+    };
+
+    function parseHash(new_hash, old_hash) {
+        
+        if (!versions.redirectMasterToDefault()) {
+            crossroads.parse(new_hash);
+        }
     }
+
+    hasher.prependHash = '';
+    hasher.initialized.add(parseHash);
+    hasher.changed.add(parseHash);
+    if (googletag && googletag.pubads) hasher.changed.add(function() { googletag.pubads().refresh([ad_slot]) });
+    hasher.init();
 }
+
 // REMOVED: loadData moved to core/data-loader.js
 
 /**Handler for expanding nav items. Takes a jQuery element that's being
@@ -725,25 +1025,14 @@ $(function() {
     // Removed debug catch-all handler to prevent event conflicts
 
     // Bootstrap collapse events to keep caret states synchronized
-    $("#side-nav").on("shown.bs.collapse", ".accordion-collapse", function(e) {
+    $("#side-nav").on("shown.bs.collapse", ".collapse", function(e) {
         var $collapse = $(this);
         var targetId = $collapse.attr('id');
+        var $dropdown = $("#side-nav").find('.dropdown[data-target="#' + targetId + '"], .dropdown[data-bs-target="#' + targetId + '"]');
+        $dropdown.removeClass('collapsed').attr('aria-expanded', 'true');
         
-        // Only call load_nav_data_handler for talent category accordions
-        // Check if this is a talent navigation accordion (nav-{category} pattern)
-        if (load_nav_data_handler && targetId && targetId.startsWith('nav-')) {
-            // Extract category from ID and validate it's a valid talent category
-            var category = targetId.replace('nav-', '');
-            var validCategories = ['base', 'celestial', 'chronomancy', 'corruption', 'cunning', 'cursed', 
-                                 'demented', 'golem', 'inscriptions', 'misc', 'other', 'psionic', 'race', 
-                                 'spell', 'steam', 'steamtech', 'technique', 'uber', 'undead', 'wild-gift'];
-            
-            if (validCategories.indexOf(category) !== -1) {
-                console.log('Loading nav talents for valid category:', category);
-                load_nav_data_handler($collapse);
-            } else {
-                console.log('Skipping load_nav_data_handler for non-talent accordion:', targetId);
-            }
+        if (load_nav_data_handler) {
+            load_nav_data_handler($collapse);
         }
     });
     
@@ -924,21 +1213,9 @@ $(function() {
         // Handle window resize with debounce
         var resizeTimeout;
         $(window).on('resize', function() {
-            // Handle desktop/mobile transition properly
+            // Close mobile nav if window becomes desktop size
             if (window.innerWidth > 767.98) {
-                // Switching to desktop: make sidebar accessible
-                var $sidebar = $('#side-nav-container');
-                $sidebar.removeClass('mobile-nav-open');
-                $('.mobile-nav-overlay').removeClass('active');
-                $('body').removeClass('mobile-nav-open');
-                $sidebar.attr('aria-hidden', 'false');
-                $('.mobile-nav-toggle').attr('aria-expanded', 'false');
-            } else {
-                // Switching to mobile: hide sidebar if not already hidden
-                var $sidebar = $('#side-nav-container');
-                if (!$sidebar.hasClass('mobile-nav-open')) {
-                    closeMobileNav();
-                }
+                closeMobileNav();
             }
             
             // Debounce the refresh to avoid excessive calls
@@ -948,15 +1225,8 @@ $(function() {
             }, 150);
         });
         
-        // Initialize aria-hidden state correctly based on screen size
+        // Ensure mobile nav is closed on initial load if desktop size
         if (window.innerWidth > 767.98) {
-            // Desktop: sidebar should be visible and accessible
-            var $sidebar = $('#side-nav-container');
-            $sidebar.removeClass('mobile-nav-open');
-            $sidebar.attr('aria-hidden', 'false');
-            $('.mobile-nav-toggle').attr('aria-expanded', 'false');
-        } else {
-            // Mobile: sidebar should be hidden initially
             closeMobileNav();
         }
     }

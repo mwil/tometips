@@ -1,0 +1,169 @@
+/*
+ * Search Component Styles  
+ * Typeahead search functionality and related elements
+ */
+
+/* Search Container */
+.search-container {
+    position: relative;
+    display: inline-block;
+    width: 250px;
+}
+
+/* Search Input */
+.search-container .typeahead {
+    width: 100%;
+    padding: 8px 30px 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: var(--font-size-base, 14px);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.search-container .typeahead:focus {
+    outline: none;
+    border-color: var(--link-color);
+    box-shadow: 0 0 0 2px rgba(51, 122, 183, 0.2);
+}
+
+/* Search Clear Button */
+.search-clear {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 16px;
+    width: 20px;
+    height: 20px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+}
+
+.search-clear:hover {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+.search-container .typeahead:not(:placeholder-shown) + .search-clear {
+    display: flex;
+}
+
+/* Typeahead Dropdown Styles */
+.tt-menu {
+    width: 100%;
+    margin-top: 4px;
+    padding: 0;
+    background-color: var(--panel-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: var(--z-dropdown, 1200);
+}
+
+.tt-dataset {
+    padding: 0;
+}
+
+/* Search Result Groups */
+.tt-dataset-header {
+    padding: 8px 12px;
+    font-size: 12px;
+    font-weight: bold;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background-color: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+    margin: 0;
+}
+
+/* Search Result Items */
+.tt-suggestion {
+    padding: 10px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border-color);
+    transition: background-color 0.2s ease;
+}
+
+.tt-suggestion:last-child {
+    border-bottom: none;
+}
+
+.tt-suggestion:hover,
+.tt-suggestion.tt-cursor {
+    background-color: var(--bg-secondary);
+}
+
+.tt-suggestion p {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: var(--font-size-base, 14px);
+    line-height: 1.4;
+}
+
+.tt-suggestion .search-match {
+    font-weight: bold;
+    color: var(--link-color);
+}
+
+/* Empty State */
+.tt-empty {
+    padding: 20px 12px;
+    text-align: center;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* Search Loading State */
+.search-container.loading .typeahead {
+    background-image: url('data:image/svg+xml;charset=utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="none" stroke="%23666" stroke-width="2" stroke-dasharray="9.4 9.4" stroke-dashoffset="0"><animateTransform attributeName="transform" type="rotate" values="0 8 8;360 8 8" dur="1s" repeatCount="indefinite"/></circle></svg>');
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 16px 16px;
+    padding-right: 32px;
+}
+
+/* Mobile Search Adjustments */
+@media (max-width: 767.98px) {
+    .search-container {
+        width: 200px;
+    }
+    
+    .tt-menu {
+        font-size: 14px;
+    }
+    
+    .tt-suggestion {
+        padding: 12px;
+    }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+    .search-container .typeahead {
+        border-width: 2px;
+    }
+    
+    .tt-suggestion:hover,
+    .tt-suggestion.tt-cursor {
+        border: 2px solid var(--link-color);
+    }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+    .search-container .typeahead,
+    .search-clear,
+    .tt-suggestion {
+        transition: none;
+    }
+}

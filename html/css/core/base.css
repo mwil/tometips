@@ -1,0 +1,63 @@
+/*
+ * Base styles: opinionated defaults
+ * Global element styles and browser compatibility fixes
+ */
+
+html,
+button,
+input,
+select,
+textarea {
+    color: var(--text-primary);
+}
+
+body {
+    line-height: 1.4;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+/*
+ * A better looking default horizontal rule
+ */
+hr {
+    display: block;
+    height: 1px;
+    border: 0;
+    border-top: 1px solid var(--border-color);
+    margin: 1em 0;
+    padding: 0;
+}
+
+/*
+ * Remove the gap between images and the bottom of their containers: h5bp.com/i/440
+ */
+img {
+    vertical-align: middle;
+}
+
+/*
+ * Remove default fieldset styles.
+ */
+fieldset {
+    border: 0;
+    margin: 0;
+    padding: 0;
+}
+
+/*
+ * Allow only vertical resizing of textareas.
+ */
+textarea {
+    resize: vertical;
+}
+
+/*
+ * Chrome Frame prompt for old browsers
+ */
+.chromeframe {
+    margin: 0.2em 0;
+    background: #ccc;
+    color: #000;
+    padding: 0.2em 0;
+}
