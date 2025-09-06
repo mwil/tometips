@@ -6,9 +6,9 @@
 @media screen and (max-width: 479.98px) {
     body #talent-popup-overlay #talent-popup,
     body #item-popup-overlay #item-popup {
-        max-width: calc(100vw - 10px) !important;
+        max-width: calc(100vw - 20px) !important;
         max-height: calc(100vh - 20px) !important;
-        margin: 10px 5px !important;
+        margin: 10px !important;
         padding: 10px !important;
         transform: translate(-50%, -50%) !important;
         top: 50% !important;
@@ -48,15 +48,18 @@
         min-width: 40px !important;
         min-height: 40px !important;
         background: rgba(255, 255, 255, 0.1) !important;
-        border-radius: 50% !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        border-radius: 6px !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
+        transition: all 0.2s ease !important;
     }
     
     body #talent-popup-overlay #talent-popup .popup-close:hover,
     body #item-popup-overlay #item-popup .popup-close:hover {
         background: rgba(255, 255, 255, 0.2) !important;
+        border-color: rgba(255, 255, 255, 0.3) !important;
     }
     
     body #talent-popup-overlay #talent-popup .popup-content,
@@ -69,9 +72,9 @@
 @media screen and (min-width: 480px) and (max-width: 575.98px) {
     body #talent-popup-overlay #talent-popup,
     body #item-popup-overlay #item-popup {
-        max-width: calc(100vw - 16px) !important;
+        max-width: calc(100vw - 30px) !important;
         max-height: calc(100vh - 30px) !important;
-        margin: 15px 8px !important;
+        margin: 15px !important;
         padding: 12px !important;
         transform: translate(-50%, -50%) !important;
         top: 50% !important;
@@ -107,10 +110,18 @@
         min-width: 36px !important;
         min-height: 36px !important;
         background: rgba(255, 255, 255, 0.1) !important;
-        border-radius: 50% !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        border-radius: 6px !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
+        transition: all 0.2s ease !important;
+    }
+    
+    body #talent-popup-overlay #talent-popup .popup-close:hover,
+    body #item-popup-overlay #item-popup .popup-close:hover {
+        background: rgba(255, 255, 255, 0.2) !important;
+        border-color: rgba(255, 255, 255, 0.3) !important;
     }
 }
 
@@ -118,9 +129,9 @@
 @media screen and (min-width: 576px) and (max-width: 767.98px) {
     body #talent-popup-overlay #talent-popup,
     body #item-popup-overlay #item-popup {
-        max-width: calc(100vw - 30px) !important;
+        max-width: calc(100vw - 40px) !important;
         max-height: calc(100vh - 40px) !important;
-        margin: 20px 15px !important;
+        margin: 20px !important;
         padding: 15px !important;
         transform: translate(-50%, -50%) !important;
         top: 50% !important;
@@ -156,10 +167,18 @@
         min-width: 40px !important;
         min-height: 40px !important;
         background: rgba(255, 255, 255, 0.1) !important;
-        border-radius: 50% !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        border-radius: 6px !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
+        transition: all 0.2s ease !important;
+    }
+    
+    body #talent-popup-overlay #talent-popup .popup-close:hover,
+    body #item-popup-overlay #item-popup .popup-close:hover {
+        background: rgba(255, 255, 255, 0.2) !important;
+        border-color: rgba(255, 255, 255, 0.3) !important;
     }
 }
 

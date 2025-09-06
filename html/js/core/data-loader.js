@@ -22,7 +22,6 @@ var DATA_LOADER = (function() {
         loadData: function(data_file, success) {
             // Defensive check: prevent malformed talent URLs
             if (data_file && data_file.indexOf('talents.') === 0 && data_file.length <= 8) {
-                console.warn('Prevented malformed talent data file request:', data_file);
                 success({}); // Return empty data to prevent 404
                 return;
             }

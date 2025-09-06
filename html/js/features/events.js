@@ -41,20 +41,53 @@ var EVENTS = (function() {
     }
     
     /**
-     * Initialize analytics tracking
+     * Initialize hashchange handling
      */
-    function initAnalyticsTracking() {
-        // Track Google Analytics as we navigate from one subpage / hash link to another.
-        // Based on http://stackoverflow.com/a/4813223/25507
-        // Really old browsers don't support hashchange. A plugin is available, but I don't really care right now.
+    function initHashChangeHandling() {
         $(window).on('hashchange', function() {
-            if (typeof _gaq !== 'undefined') {
-                _gaq.push(['_trackPageview', location.pathname + location.search + location.hash]);
-            }
-            
-            // Auto-close mobile navigation on hash change (page navigation)
+            // Auto-close mobile navigation on hash change ONLY for deep navigation
+            // Keep menu open for top-level section changes (races, classes, talents, items)
             if (window.innerWidth <= 767.98 && typeof closeMobileNav === 'function') {
-                closeMobileNav();
+                var hash = window.location.hash;
+                var shouldCloseMenu = false;
+                
+                // Only close menu for deep navigation (more than 1 level deep)
+                if (hash) {
+                    var hashParts = hash.substring(1).split('/'); // Remove # and split by /
+                    
+                    // Don't close for top-level navigation to main sections
+                    var topLevelSections = ['races', 'classes', 'talents', 'items'];
+                    var isTopLevelNavigation = hashParts.length === 1 && 
+                                             topLevelSections.includes(hashParts[0]);
+                    
+                    if (!isTopLevelNavigation) {
+                        // Close menu for deep navigation:
+                        // - races/human/shalore (3+ parts)
+                        // - classes/warrior/berserker (3+ parts) 
+                        // - talents/spell/divination (3+ parts)
+                        // - Any navigation with query parameters (?version=1.7.6)
+                        if (hashParts.length >= 3 || hash.includes('?')) {
+                            shouldCloseMenu = true;
+                        }
+                        
+                        // Also close for specific single-level pages that represent final destinations
+                        else if (hashParts.length === 1) {
+                            var singlePages = ['changes', 'recent-changes'];
+                            if (singlePages.includes(hashParts[0])) {
+                                shouldCloseMenu = true;
+                            }
+                        }
+                        
+                        // Close for 2-level navigation (e.g., races/human, classes/warrior)
+                        else if (hashParts.length === 2) {
+                            shouldCloseMenu = true;
+                        }
+                    }
+                }
+                
+                if (shouldCloseMenu) {
+                    closeMobileNav();
+                }
             }
             
             // Don't scroll here - let the route handlers call scrollToId after content loads
@@ -97,10 +130,62 @@ var EVENTS = (function() {
     // =======================
     
     /**
+     * Initialize main navigation (header) event handling
+     */
+    function initMainNavigation() {
+        // Handle clicks on main navigation links (.nav-link in header)
+        $(document).on('click', '.nav-link[data-base-href]', function(e) {
+            e.preventDefault();
+            var $link = $(this);
+            var href = $link.attr('data-base-href');
+            
+            if (href) {
+                // Navigate to the target hash
+                if (typeof hasher !== 'undefined') {
+                    hasher.setHash(href.substring(1));
+                } else {
+                    window.location.hash = href;
+                }
+            }
+        });
+    }
+    
+    /**
      * Initialize sidebar navigation event handling
      */
     function initSidebarNavigation() {
         // UNIFIED ACCORDION MANAGER - Bootstrap 5 Native Approach
+        
+        // Mobile-specific: Handle sidebar navigation clicks for mobile menu behavior
+        $(document).on('click', '#side-nav a', function(e) {
+            // Only apply mobile behavior on mobile screens
+            if (window.innerWidth <= 767.98) {
+                var $link = $(this);
+                var href = $link.attr('href');
+                
+                // EXCLUDE mobile main nav buttons - they have their own handler
+                if ($link.closest('.mobile-main-nav').length > 0) {
+                    return; // Let the dedicated mobile main nav handler manage this
+                }
+                
+                // Check if this is a leaf navigation item (actual destination link)
+                // vs. an accordion toggle or section header
+                var isAccordionToggle = $link.hasClass('accordion-button') || 
+                                       $link.attr('data-bs-toggle') === 'collapse' ||
+                                       $link.attr('data-toggle') === 'collapse';
+                
+                // Check if this is a navigation link with href that goes to actual content
+                var isDestinationLink = href && href.startsWith('#') && 
+                                       !isAccordionToggle &&
+                                       !href.includes('nav-'); // nav-* are accordion panels
+                
+                // Close mobile menu ONLY for actual destination links (lowest level)
+                if (isDestinationLink && typeof closeMobileNav === 'function') {
+                    // Small delay to let the navigation complete first
+                    setTimeout(closeMobileNav, 100);
+                }
+            }
+        });
         
         // Only handle leaf navigation items (actual links that navigate)
         // Bootstrap 5 handles all accordion expand/collapse behavior automatically
@@ -200,6 +285,8 @@ var EVENTS = (function() {
         // Handle main navigation clicks in mobile menu
         $(document).on('click', '.mobile-main-nav a[data-nav]', function(e) {
             e.preventDefault();
+            e.stopPropagation(); // Prevent event bubbling to other handlers
+            
             var navType = $(this).data('nav');
             var hash = $(this).attr('href');
             
@@ -284,7 +371,8 @@ var EVENTS = (function() {
             }, 150);
         });
         
-        // Mobile navigation helper functions
+        // Mobile navigation helper functions - these will be overridden by UI_MANAGEMENT
+        // but provide fallback implementations
         function toggleMobileNav() {
             var $sidebar = $('#side-nav-container');
             if ($sidebar.hasClass('mobile-nav-open')) {
@@ -350,7 +438,7 @@ var EVENTS = (function() {
             }
         }
         
-        // Expose functions for backwards compatibility
+        // Expose functions globally (these may be overridden by UI_MANAGEMENT)
         window.toggleMobileNav = toggleMobileNav;
         window.openMobileNav = openMobileNav;
         window.closeMobileNav = closeMobileNav;
@@ -367,8 +455,9 @@ var EVENTS = (function() {
         init: function() {
             this.initClickableElements();
             this.initImageErrorHandling();
-            this.initAnalyticsTracking();
+            this.initHashChangeHandling();
             this.initScrollAutoClose();
+            this.initMainNavigation();
             this.initSidebarNavigation();
             this.initThemeEvents();
             this.initMobileNavigation();
@@ -377,8 +466,9 @@ var EVENTS = (function() {
         // Individual initializers for selective use
         initClickableElements: initClickableElements,
         initImageErrorHandling: initImageErrorHandling,
-        initAnalyticsTracking: initAnalyticsTracking,
+        initHashChangeHandling: initHashChangeHandling,
         initScrollAutoClose: initScrollAutoClose,
+        initMainNavigation: initMainNavigation,
         initSidebarNavigation: initSidebarNavigation,
         initThemeEvents: initThemeEvents,
         initMobileNavigation: initMobileNavigation

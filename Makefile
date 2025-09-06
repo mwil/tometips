@@ -22,10 +22,13 @@ html/js/templates.js: html/js/templates/*.handlebars
 	handlebars --min -f $@ html/js/templates
 
 # CSS build system - concatenate modular CSS files
-html/css/main.css: html/css/base.css html/css/modules/*.css
-	cat html/css/base.css html/css/modules/*.css > $@
+# Note: This builds the concatenated version - currently using direct main.css
+html/css/main-modular-build.css: html/css/core/base.css html/css/components/*.css html/css/modules/*.css html/css/utilities/*.css
+	cat html/css/core/variables.css html/css/core/base.css html/css/components/*.css html/css/modules/*.css html/css/utilities/*.css > $@
 
-css: html/css/main.css
+# CSS build targets
+css: html/css/main-modular-build.css
+css-modular: html/css/main-modular.css
 
 # Note: Partials are compiled separately into html/js/partials.js to avoid conflicts with templates.js
 # Templates go in html/js/templates.js, partials go in html/js/partials.js
@@ -34,7 +37,7 @@ css: html/css/main.css
 # delete images.
 clean:
 	find html/data -mindepth 1 -maxdepth 1 -not -name README.txt | xargs rm -rf
-	rm -f html/js/templates.js html/js/partials.js
+	rm -f html/js/templates.js html/js/partials.js html/css/main-modular-build.css
 
 # Cleaner than clean.  This *does* delete images.
 clean-all: clean
@@ -164,5 +167,5 @@ $(RELEASE_VERSIONS):
 dlc: $(VERSIONS)
 	touch dlc
 
-.PHONY: clean pretty img pull publish
+.PHONY: clean clean-all pretty img pull publish css css-modular
 

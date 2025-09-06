@@ -15,16 +15,16 @@ var VERSION_MANAGEMENT = (function() {
             $_dropdown.val(current);
             
             // Save expanded collapsible IDs for state restoration
-            if (typeof getExpandedIds === 'function') {
-                prev_expanded = getExpandedIds();
+            if (typeof UI_MANAGEMENT !== 'undefined' && UI_MANAGEMENT.getExpandedIds) {
+                prev_expanded = UI_MANAGEMENT.getExpandedIds();
             }
             
             // Clear sidebar for refresh
             $("#side-nav").html("");
             
             // Update navigation and search
-            if (typeof updateNav === 'function') {
-                updateNav();
+            if (typeof ROUTING !== 'undefined' && ROUTING.updateNav) {
+                ROUTING.updateNav();
             }
             
             // Update search system if this is version change

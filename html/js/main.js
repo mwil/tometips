@@ -1,3 +1,16 @@
+/**
+ * Core Utility Functions and Legacy Code
+ * Contains shared utility functions, string polyfills, and helper functions
+ * used throughout the ToME Tips application. This file serves as a collection
+ * of general-purpose utilities that don't belong to specific modules.
+ * 
+ * Key features:
+ * - Hash query string parsing for URL parameters
+ * - String formatting utilities (title case conversion)
+ * - Statistics display helpers
+ * - Legacy browser compatibility functions
+ */
+
 var VERSION = '2017-03-11';
 
 // http://stackoverflow.com/a/2548133/25507
@@ -7,8 +20,17 @@ if (typeof String.prototype.endsWith !== 'function') {
     };
 }
 
-/**Parses query string-like parameters out of the end of the hash.
- * Based on http://stackoverflow.com/a/2880929/25507
+/**
+ * Parses query string-like parameters out of the end of the location hash.
+ * Extracts URL parameters from hash fragments like "#page?param1=value1&param2=value2".
+ * 
+ * @function parseHashQueryString
+ * @returns {Object} Object with decoded parameter key-value pairs
+ * @example
+ * // URL: http://example.com/#races?version=1.7.6&mastery=1.0
+ * parseHashQueryString(); // returns {version: "1.7.6", mastery: "1.0"}
+ * 
+ * @see {@link http://stackoverflow.com/a/2880929/25507|Stack Overflow reference}
  */
 function parseHashQueryString() {
     var match,
@@ -29,12 +51,19 @@ function parseHashQueryString() {
     return url_params;
 }
 
-// REMOVED: getData moved to core/data-loader.js
-
-// REMOVED: escapeHtml moved to core/utils.js
-
-// REMOVED: locationHashNoQuery moved to core/utils.js
-
+/**
+ * Builds current query string from version and mastery settings.
+ * Combines version and mastery parameters into a properly formatted query string.
+ * 
+ * @function currentQuery
+ * @returns {string} Query string starting with '?' or empty string if no parameters
+ * @example
+ * // With version 1.7.6 and mastery 1.0 selected
+ * currentQuery(); // returns "?version=1.7.6&mastery=1.0"
+ * 
+ * // With no version or mastery selected
+ * currentQuery(); // returns ""
+ */
 function currentQuery()
 {
     var query = versions.asQuery();
@@ -47,91 +76,9 @@ function currentQuery()
     return query ? '?' + query : '';
 }
 
-// MOVED: Navigation management moved to features/routing.js
-function setActiveNav(active_nav_route) {
-    if (typeof ROUTING !== 'undefined') {
-        return ROUTING.setActiveNav(active_nav_route);
-    }
-}
-
-// MOVED: Navigation updates moved to features/routing.js
-function updateNav() {
-    if (typeof ROUTING !== 'undefined') {
-        return ROUTING.updateNav();
-    }
-}
-
-
-// Removed old scrollToId function - using the updated one below
-
-// MOVED: Mobile navigation moved to features/ui-management.js
-function createMobileNavigation(contentNav) {
-    if (typeof UI_MANAGEMENT !== 'undefined') {
-        return UI_MANAGEMENT.createMobileNavigation(contentNav);
-    }
-    return contentNav || '';
-}
-
-// MOVED: Layout management moved to features/ui-management.js
-function adjustSidebarLayout() {
-    if (typeof UI_MANAGEMENT !== 'undefined') {
-        return UI_MANAGEMENT.adjustSidebarLayout();
-    }
-}
-
-// MOVED: Expand/collapse functionality moved to features/ui-management.js
-function enableExpandCollapseAll() {
-    if (typeof UI_MANAGEMENT !== 'undefined') {
-        return UI_MANAGEMENT.enableExpandCollapseAll();
-    }
-}
-
-// MOVED: Sidebar accordion behavior moved to features/ui-management.js
-function enforceSidebarAccordion(targetNavId) {
-    if (typeof UI_MANAGEMENT !== 'undefined') {
-        return UI_MANAGEMENT.enforceSidebarAccordion(targetNavId);
-    }
-}
-
-// MOVED: Collapsible management moved to features/ui-management.js
-function showCollapsed(html_id, disable_transitions) {
-    if (typeof UI_MANAGEMENT !== 'undefined') {
-        return UI_MANAGEMENT.showCollapsed(html_id, disable_transitions);
-    }
-}
-
-// MOVED: Collapsible accordion behavior moved to features/ui-management.js
-function showCollapsedWithAccordion(html_id, disable_transitions) {
-    if (typeof UI_MANAGEMENT !== 'undefined') {
-        return UI_MANAGEMENT.showCollapsedWithAccordion(html_id, disable_transitions);
-    }
-}
-
-// MOVED: Expanded IDs tracking moved to features/ui-management.js
-function getExpandedIds() {
-    if (typeof UI_MANAGEMENT !== 'undefined') {
-        return UI_MANAGEMENT.getExpandedIds();
-    }
-    return [];
-}
-
-// MOVED: Expand IDs functionality moved to features/ui-management.js
-function expandIds(id_list, disable_transitions) {
-    if (typeof UI_MANAGEMENT !== 'undefined') {
-        return UI_MANAGEMENT.expandIds(id_list, disable_transitions);
-    }
-}
-
-// MOVED: Expanded state tracking moved to features/ui-management.js
 // Compatibility alias for backward compatibility
 var prev_expanded = null;
 
-// MOVED: Update finished logic moved to features/ui-management.js
-function updateFinished() {
-    if (typeof UI_MANAGEMENT !== 'undefined') {
-        return UI_MANAGEMENT.updateFinished();
-    }
-}
 
 // Header is now always fixed - no sticky behavior needed
 
@@ -139,7 +86,19 @@ var options = {
     imgSize: 48
 };
 
-///Simplistic title-case function that capitalizes the beginning of every word.
+/**
+ * Converts a string to title case by capitalizing the first letter of each word.
+ * Handles special cases for common prepositions and possessives.
+ * 
+ * @function toTitleCase
+ * @param {string|number} s - String to convert to title case
+ * @returns {string} Title-cased string with proper capitalization
+ * @example
+ * toTitleCase("the lord of the rings"); // returns "The Lord of the Rings"
+ * toTitleCase("berserker's rage"); // returns "Berserker's Rage"
+ * toTitleCase(""); // returns ""
+ * toTitleCase(null); // returns ""
+ */
 function toTitleCase(s)
 {
     // Handle null/undefined values
@@ -161,8 +120,6 @@ function toTitleCase(s)
     return s[0].toUpperCase() + s.slice(1);
 }
 
-// REMOVED: toHtmlId and toUnsafeHtmlId moved to core/utils.js
-
 /**Given an object, return a new object that indexes the object's properties by
  * HTML ID.
  *
@@ -174,26 +131,37 @@ function indexByHtmlId(obj, property) {
     return _.object(_.map(obj, function(elem) { return [ UTILS.toHtmlId(elem[property]), elem ]; }));
 }
 
-/**Marks up inline links to the ToME wiki */
-// MOVED: Link markup moved to features/ui-management.js
-function markupHintLinks() {
-    if (typeof UI_MANAGEMENT !== 'undefined') {
-        return UI_MANAGEMENT.markupHintLinks();
-    }
-}
+/**
+ * @todo Implement ToME wiki link markup functionality
+ * @deprecated This function is not implemented
+ */
 
-// MOVED: Tooltip management moved to features/ui-management.js
-function enableTalentTooltips() {
-    if (typeof UI_MANAGEMENT !== 'undefined') {
-        return UI_MANAGEMENT.enableTalentTooltips();
-    }
-}
 
+/**
+ * Handlebars helper that returns the ToME game's Git repository URL.
+ * Provides a constant URL for linking to the game's source code.
+ * 
+ * @function tome_git_url
+ * @returns {string} Git repository URL for ToME game engine
+ * @example
+ * // In Handlebars template: <a href="{{tome_git_url}}">View Source</a>
+ */
 Handlebars.registerHelper('tome_git_url', function() {
     return 'http://git.net-core.org/tome/t-engine4';
 });
 
-// Helper to detect DLC content based on source_code path
+/**
+ * Handlebars helper to detect if content belongs to DLC (Downloadable Content).
+ * Checks source code path patterns to identify DLC modules like cults, orcs, ashes, etc.
+ * 
+ * @function isDLC
+ * @param {Array<string>} source_code - Array containing source code file paths
+ * @returns {boolean} True if content is from DLC, false otherwise
+ * @example
+ * // In Handlebars template: {{#if (isDLC source_code)}}DLC Content{{/if}}
+ * isDLC(["data-cults/something.lua"]); // returns true
+ * isDLC(["data/base/something.lua"]); // returns false
+ */
 Handlebars.registerHelper('isDLC', function(source_code) {
     if (!source_code || !source_code[0]) return false;
     var path = source_code[0];
@@ -208,7 +176,20 @@ Handlebars.registerHelper('isDLC', function(source_code) {
     return isDlc;
 });
 
-///Iterates over properties, sorted. Based on http://stackoverflow.com/a/9058854/25507.
+/**
+ * Handlebars helper to iterate over object properties in sorted order.
+ * Sorts property keys alphabetically and renders template for each key-value pair.
+ * 
+ * @function eachProperty
+ * @param {Object} context - Object whose properties to iterate
+ * @param {Object} options - Handlebars options object with template functions
+ * @returns {string} Concatenated HTML from template executions
+ * @example
+ * // In Handlebars template: {{#eachProperty stats}}{{key}}: {{value}}{{/eachProperty}}
+ * // With context {strength: 10, dexterity: 8} renders in alphabetical order
+ * 
+ * @see {@link http://stackoverflow.com/a/9058854/25507|Stack Overflow reference}
+ */
 Handlebars.registerHelper('eachProperty', function(context, options) {
     var ret = "",
         keys = _.keys(context || {});
@@ -315,8 +296,6 @@ Handlebars.registerHelper('currentQuery', function(context, options) {
     return currentQuery();
 });
 
-// REMOVED: Duplicate opt helper - consolidated into single implementation below (line 1348)
-
 Handlebars.registerHelper('labelForChangeType', function(type) {
     var css_class = { "changed": "info", "added": "success", "removed": "danger" },
         text = { "changed": "Changed", "added": "New", "removed": "Removed" };
@@ -332,6 +311,22 @@ Handlebars.registerHelper('labelForChangeType', function(type) {
  *   If -1, invert the comparison.  If 0, don't prepend with '+'.
  * @compare
  *   if value is > compare, then a bonus; if < compare, a penalty
+ */
+/**
+ * Creates HTML markup for a stat display with appropriate styling based on value comparison.
+ * Generates a definition list item with color-coded value indication (bonus/penalty/neutral).
+ * 
+ * @function stat
+ * @param {string} desc - Description label for the stat
+ * @param {number} value - Numeric value of the stat
+ * @param {string} [display] - Custom display format, defaults to "+value" or "value"
+ * @param {number} [mult=1] - Multiplier for internal calculations (-1 to invert comparison)
+ * @param {number} [compare=0] - Baseline value for comparison to determine bonus/penalty
+ * @returns {Handlebars.SafeString} HTML markup as Handlebars SafeString
+ * @example
+ * stat("Strength", 5); // returns '<dt>Strength:</dt><dd><span class="stat-bonus">+5</span></dd>'
+ * stat("Dexterity", -2); // returns '<dt>Dexterity:</dt><dd><span class="stat-penalty">-2</span></dd>'
+ * stat("Constitution", 0); // returns '<dt>Constitution:</dt><dd><span class="stat-neutral">0</span></dd>'
  */
 function stat(desc, value, display, mult, compare) {
     var internal_value = value * (mult || 1),
@@ -429,55 +424,18 @@ var routes,
     load_nav_data_handler,
     base_title = document.title;
 
-// MOVED: Routing system moved to features/routing.js
-function initializeRoutes() {
-    if (typeof ROUTING !== 'undefined') {
-        return ROUTING.initializeRoutes();
-    }
-}
-// REMOVED: loadData moved to core/data-loader.js
-
 /**Handler for expanding nav items. Takes a jQuery element that's being
  * expanded and does any on-demand loading of the data for that nav item.
  */
 load_nav_data_handler = false;
 
-// REMOVED: loadDataIfNeeded moved to core/data-loader.js
-
-// MOVED: Image size settings moved to features/ui-management.js
-var imgSizeSettings = {
-    get size() {
-        return (typeof UI_MANAGEMENT !== 'undefined' && UI_MANAGEMENT.imageSize) 
-            ? UI_MANAGEMENT.imageSize.get() : 32;
-    },
-    set: function(size) {
-        if (typeof UI_MANAGEMENT !== 'undefined' && UI_MANAGEMENT.imageSize) {
-            UI_MANAGEMENT.imageSize.set(size);
-        }
-    },
-    get: function() {
-        if (typeof UI_MANAGEMENT !== 'undefined' && UI_MANAGEMENT.imageSize) {
-            return UI_MANAGEMENT.imageSize.get();
-        }
-        return 32;
-    },
-    updateActiveMenuItem: function(size) {
-        if (typeof UI_MANAGEMENT !== 'undefined' && UI_MANAGEMENT.imageSize) {
-            return UI_MANAGEMENT.imageSize.updateActiveMenuItem(size);
-        }
-    },
-    applyIconSizeClasses: function(size) {
-        if (typeof UI_MANAGEMENT !== 'undefined' && UI_MANAGEMENT.imageSize) {
-            return UI_MANAGEMENT.imageSize.applyIconSizeClasses(size);
-        }
-    }
-};
 
 // Consolidated Handlebars helper for accessing settings and global options
 Handlebars.registerHelper('opt', function(option) {
     if (option === 'imgSize') {
         // Get the current menu setting
-        var menuSize = imgSizeSettings.get();
+        var menuSize = (typeof UI_MANAGEMENT !== 'undefined' && UI_MANAGEMENT.imageSize) 
+            ? UI_MANAGEMENT.imageSize.get() : 32;
         
         // Check if we're on the talents or items page vs classes page
         var currentHash = window.location.hash || '';
@@ -514,29 +472,19 @@ Handlebars.registerHelper('opt', function(option) {
     return '';
 });
 
-// MOVED: Talents page size handling moved to features/ui-management.js
-function handleTalentsPageSizeChange(menuSize) {
-    if (typeof UI_MANAGEMENT !== 'undefined' && UI_MANAGEMENT.imageSize) {
-        return UI_MANAGEMENT.imageSize.handleTalentsPageSizeChange(menuSize);
-    }
-}
-
-// MOVED: Items page size handling moved to features/ui-management.js
-function handleItemsPageSizeChange(menuSize) {
-    if (typeof UI_MANAGEMENT !== 'undefined' && UI_MANAGEMENT.imageSize) {
-        return UI_MANAGEMENT.imageSize.handleItemsPageSizeChange(menuSize);
-    }
-}
-
-// MOVED: Image size configuration moved to features/ui-management.js
-function configureImgSize() {
-    if (typeof UI_MANAGEMENT !== 'undefined') {
-        return UI_MANAGEMENT.configureImgSize();
-    }
-}
-
-// MOVED: Test function moved to features/ui-management.js
-// Global function for testing from console
+/**
+ * Global function for testing image spacing from browser console.
+ * Allows developers to quickly test different icon sizes during development.
+ * 
+ * @function testSpacing
+ * @param {number} [size=64] - Icon size in pixels (32, 48, or 64)
+ * @example
+ * // In browser console:
+ * testSpacing(32); // Sets icons to small size
+ * testSpacing(48); // Sets icons to medium size  
+ * testSpacing(64); // Sets icons to large size
+ * testSpacing();   // Defaults to 64px
+ */
 window.testSpacing = function(size) {
     size = size || 64;
     if (typeof UI_MANAGEMENT !== 'undefined' && UI_MANAGEMENT.imageSize) {
@@ -545,10 +493,18 @@ window.testSpacing = function(size) {
     }
 };
 
-// REMOVED: Duplicate locationHashNoQuery moved to core/utils.js
-
-// REMOVED: scrollToId function moved to core/utils.js
-
+/**
+ * Global error handler for uncaught JavaScript exceptions.
+ * Displays user-friendly error messages and cleans up loading states.
+ * 
+ * @function window.onerror
+ * @param {string} msg - Error message
+ * @param {string} url - URL where error occurred
+ * @param {number} line - Line number where error occurred
+ * @example
+ * // Automatically called on uncaught errors
+ * // Displays: "Internal error: [message] on [url] line [line]"
+ */
 window.onerror = function(msg, url, line) {
     $("html").removeClass("wait");
 
@@ -565,33 +521,11 @@ window.onerror = function(msg, url, line) {
     );
 };
 
-// REMOVED: Main initialization moved to core/app.js
-// Keep this comment to prevent duplicate initialization
 $(function() {
-    // Legacy initialization code - will be moved in phases
-    
-    // Prevent duplicate initialization from app.js
     if (window.APP_INITIALIZED) return;
-    window.APP_INITIALIZED = true;
     // See http://stackoverflow.com/a/10801889/25507
     $(document).ajaxStart(function() { $("html").addClass("wait"); });
     $(document).ajaxStop(function() { $("html").removeClass("wait"); });
-
-    // Clicking on a ".clickable" element triggers the <a> within it.
-    $("html").on("click", ".clickable", function(e) {
-        // Skip expand-all/collapse-all buttons - they have their own handlers
-        if ($(this).hasClass('expand-all') || $(this).hasClass('collapse-all')) {
-            return true;
-        }
-        
-        if (e.target.nodeName == 'A') {
-            // If the user clicked on the link itself, then simply let
-            // the browser handle it.
-            return true;
-        }
-
-        $(this).find('a').click();
-    });
 
     // Flag to prevent dropdown handling after navigation
     // Clean event handling for navigation
@@ -739,10 +673,7 @@ $(function() {
                                  'spell', 'steam', 'steamtech', 'technique', 'uber', 'undead', 'wild-gift'];
             
             if (validCategories.indexOf(category) !== -1) {
-                console.log('Loading nav talents for valid category:', category);
                 load_nav_data_handler($collapse);
-            } else {
-                console.log('Skipping load_nav_data_handler for non-talent accordion:', targetId);
             }
         }
     });
@@ -756,11 +687,6 @@ $(function() {
     
     
 
-    $("html").on("error", "img", function() {
-        $(this).hide();
-    });
-
-    // REMOVED: These initializations moved to core/app.js
     // enableExpandCollapseAll();
     // versions.init($(".ver-dropdown"), $(".ver-dropdown-container"));
     // masteries.init($(".mastery-dropdown"), $(".mastery-dropdown-container"));
@@ -768,249 +694,7 @@ $(function() {
     // adjustSidebarLayout();
     // $('.tt-dropdown-menu').width($('#content-header .header-tools').width());
 
-    // Track Google Analytics as we navigate from one subpage / hash link to another.
-    // Based on http://stackoverflow.com/a/4813223/25507
-    // Really old browsers don't support hashchange.  A plugin is available, but I don't really care right now.
-    $(window).on('hashchange', function() {
-        _gaq.push(['_trackPageview', location.pathname + location.search + location.hash]);
-        // Don't scroll here - let the route handlers call scrollToId after content loads
-    });
-
-    // Dark mode toggle functionality
-    function initDarkMode() {
-        // Check for saved theme preference or default to light mode
-        const savedTheme = localStorage.getItem('theme');
-        const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        const initialTheme = savedTheme || (systemDark ? 'dark' : 'light');
-        
-        // Apply initial theme
-        document.documentElement.setAttribute('data-theme', initialTheme);
-        updateThemeToggleText(initialTheme);
-        
-        // Theme toggle click handler
-        $('#theme-toggle').on('click', function(e) {
-            e.preventDefault();
-            const currentTheme = document.documentElement.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            
-            document.documentElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-            updateThemeToggleText(newTheme);
-        });
-        
-        function updateThemeToggleText(theme) {
-            const $toggle = $('#theme-toggle');
-            if (theme === 'dark') {
-                $toggle.text('☀️ Light mode');
-            } else {
-                $toggle.text('🌙 Dark mode');
-            }
-        }
-    }
-    
-    // Function to refresh current navigation content
-    function refreshCurrentNavigation() {
-        var currentHash = window.location.hash;
-        var $sideNav = $("#side-nav");
-        var currentContent = $sideNav.html();
-        
-        // Only refresh if there's existing content
-        if (currentContent) {
-            var contentNav = '';
-            
-            // Extract the content navigation part (everything after mobile-main-nav div)
-            if (currentContent.indexOf('mobile-main-nav') !== -1) {
-                var mobileNavMatch = currentContent.match(/<div class="mobile-main-nav">.*?<\/div>(.*)/s);
-                contentNav = mobileNavMatch ? mobileNavMatch[1] : currentContent;
-            } else {
-                // No mobile nav found, use all content as content nav
-                contentNav = currentContent;
-            }
-            
-            // Regenerate with current screen size logic
-            $sideNav.html(createMobileNavigation(contentNav));
-        }
-    }
-    
-    // Mobile navigation functionality
-    function initMobileNavigation() {
-        // Mobile nav toggle
-        $('.mobile-nav-toggle').on('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            toggleMobileNav();
-        });
-        
-        // Close mobile nav when clicking overlay
-        $('.mobile-nav-overlay').on('click', function() {
-            closeMobileNav();
-        });
-        
-        // Handle main navigation clicks in mobile menu
-        $(document).on('click', '.mobile-main-nav a[data-nav]', function(e) {
-            e.preventDefault();
-            var navType = $(this).data('nav');
-            var hash = $(this).attr('href');
-            
-            // Add active state to clicked button
-            $('.mobile-main-nav a').removeClass('active');
-            $(this).addClass('active');
-            
-            // Navigate to the section WITHOUT closing mobile nav
-            window.location.hash = hash;
-        });
-        
-        // Close mobile nav when clicking outside sidebar
-        $(document).on('click', function(e) {
-            if (window.innerWidth <= 767.98) {
-                var $target = $(e.target);
-                var isMenuOpen = $('#side-nav-container').hasClass('mobile-nav-open');
-                var isClickInsideSidebar = $target.closest('#side-nav-container').length > 0;
-                var isClickOnToggle = $target.closest('.mobile-nav-toggle').length > 0;
-                
-                if (isMenuOpen && !isClickInsideSidebar && !isClickOnToggle) {
-                    closeMobileNav();
-                }
-            }
-        });
-        
-        // Handle swipe gestures for mobile nav
-        var startX = null;
-        var startY = null;
-        
-        $(document).on('touchstart', function(e) {
-            if (window.innerWidth <= 767.98) {
-                var touch = e.originalEvent.touches[0];
-                startX = touch.clientX;
-                startY = touch.clientY;
-            }
-        });
-        
-        $(document).on('touchmove', function(e) {
-            if (window.innerWidth <= 767.98 && startX !== null) {
-                var touch = e.originalEvent.touches[0];
-                var currentX = touch.clientX;
-                var currentY = touch.clientY;
-                var deltaX = currentX - startX;
-                var deltaY = currentY - startY;
-                
-                // Detect horizontal swipe (more horizontal than vertical)
-                if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
-                    var isMenuOpen = $('#side-nav-container').hasClass('mobile-nav-open');
-                    
-                    // Swipe right to open (only if starting from left edge)
-                    if (deltaX > 0 && !isMenuOpen && startX < 50) {
-                        e.preventDefault();
-                        openMobileNav();
-                        startX = null;
-                        startY = null;
-                    }
-                    // Swipe left to close (only if menu is open)
-                    else if (deltaX < -50 && isMenuOpen) {
-                        e.preventDefault();
-                        closeMobileNav();
-                        startX = null;
-                        startY = null;
-                    }
-                }
-            }
-        });
-        
-        $(document).on('touchend', function() {
-            startX = null;
-            startY = null;
-        });
-        
-        // Handle window resize with debounce
-        var resizeTimeout;
-        $(window).on('resize', function() {
-            // Handle desktop/mobile transition properly
-            if (window.innerWidth > 767.98) {
-                // Switching to desktop: make sidebar accessible
-                var $sidebar = $('#side-nav-container');
-                $sidebar.removeClass('mobile-nav-open');
-                $('.mobile-nav-overlay').removeClass('active');
-                $('body').removeClass('mobile-nav-open');
-                $sidebar.attr('aria-hidden', 'false');
-                $('.mobile-nav-toggle').attr('aria-expanded', 'false');
-            } else {
-                // Switching to mobile: hide sidebar if not already hidden
-                var $sidebar = $('#side-nav-container');
-                if (!$sidebar.hasClass('mobile-nav-open')) {
-                    closeMobileNav();
-                }
-            }
-            
-            // Debounce the refresh to avoid excessive calls
-            clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(function() {
-                refreshCurrentNavigation();
-            }, 150);
-        });
-        
-        // Initialize aria-hidden state correctly based on screen size
-        if (window.innerWidth > 767.98) {
-            // Desktop: sidebar should be visible and accessible
-            var $sidebar = $('#side-nav-container');
-            $sidebar.removeClass('mobile-nav-open');
-            $sidebar.attr('aria-hidden', 'false');
-            $('.mobile-nav-toggle').attr('aria-expanded', 'false');
-        } else {
-            // Mobile: sidebar should be hidden initially
-            closeMobileNav();
-        }
-    }
-    
-    function toggleMobileNav() {
-        var $sidebar = $('#side-nav-container');
-        var $overlay = $('.mobile-nav-overlay');
-        var $body = $('body');
-        
-        if ($sidebar.hasClass('mobile-nav-open')) {
-            closeMobileNav();
-        } else {
-            openMobileNav();
-        }
-    }
-    
-    function openMobileNav() {
-        var $sidebar = $('#side-nav-container');
-        var $overlay = $('.mobile-nav-overlay');
-        var $body = $('body');
-        
-        $sidebar.addClass('mobile-nav-open');
-        $overlay.addClass('active');
-        $body.addClass('mobile-nav-open');
-        
-        // Ensure focus accessibility
-        $sidebar.attr('aria-hidden', 'false');
-        $('.mobile-nav-toggle').attr('aria-expanded', 'true');
-    }
-    
-    function closeMobileNav() {
-        var $sidebar = $('#side-nav-container');
-        var $overlay = $('.mobile-nav-overlay');
-        var $body = $('body');
-        
-        $sidebar.removeClass('mobile-nav-open');
-        $overlay.removeClass('active');
-        $body.removeClass('mobile-nav-open');
-        
-        // Ensure focus accessibility
-        $sidebar.attr('aria-hidden', 'true');
-        $('.mobile-nav-toggle').attr('aria-expanded', 'false');
-    }
-
-    // Initialize dark mode
-    initDarkMode();
-
-    // Initialize mobile navigation
-    initMobileNavigation();
-
     // We explicitly do NOT use var, for now, to facilitate inspection in Firebug.
     // (Our route handlers and such currently also rely on tome being global.)
     tome = {};
-
-    // REMOVED: initializeRoutes() moved to core/app.js
-    // initializeRoutes();
 });

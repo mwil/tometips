@@ -24,8 +24,8 @@ var ROUTING = (function() {
         }
         
         // Save expanded state before routing
-        if (typeof getExpandedIds === 'function') {
-            prev_expanded = getExpandedIds();
+        if (typeof UI_MANAGEMENT !== 'undefined' && UI_MANAGEMENT.getExpandedIds) {
+            prev_expanded = UI_MANAGEMENT.getExpandedIds();
         }
         
         // Clear content and set loading state
@@ -94,7 +94,11 @@ var ROUTING = (function() {
 
                 if (!$("#nav-talents").length) {
                     DATA_LOADER.loadDataIfNeeded('', function() {
-                        $("#side-nav").html(createMobileNavigation(navTalents(DATA_LOADER.getData())));
+                        $("#side-nav").html(UI_MANAGEMENT.createMobileNavigation(navTalents(DATA_LOADER.getData())));
+                        // Convert Bootstrap attributes for dynamic content - FIX FOR ACCORDION CLICKS
+                        if (window.convertBootstrapAttributes) {
+                            window.convertBootstrapAttributes(document.getElementById('side-nav'));
+                        }
                         load_nav_data_handler = loadNavTalents;
                         $("#content").html($("#news").html());
                         
@@ -116,7 +120,16 @@ var ROUTING = (function() {
                     // Just need to ensure the navigation content is populated
                     
                     if (typeof fillNavTalents === 'function') {
-                        fillNavTalents(DATA_LOADER.getData(), category);
+                        // Check if talent data is available before trying to populate
+                        var talentData = DATA_LOADER.getData() && DATA_LOADER.getData().talents && DATA_LOADER.getData().talents[category];
+                        if (talentData) {
+                            fillNavTalents(DATA_LOADER.getData(), category);
+                        } else {
+                            // Data not loaded yet, load it and then populate
+                            DATA_LOADER.loadDataIfNeeded('talents.' + category, function() {
+                                fillNavTalents(DATA_LOADER.getData(), category);
+                            });
+                        }
                     }
                     $("#content").html(listTalents(DATA_LOADER.getData(), category));
                     UTILS.scrollToId();
@@ -125,16 +138,10 @@ var ROUTING = (function() {
                     if (typeof convertBootstrapAttributes === 'function') {
                         convertBootstrapAttributes();
                     }
-                    var expandingAll = false;
-                    
-                    $(".expand-all").on('click', function() {
-                        expandingAll = true;
-                        setTimeout(function() { expandingAll = false; }, 1000);
-                    });
 
                     var isScrolling = false;
                     $(document).on('shown.bs.collapse', '.talent-details.collapse', function () {
-                        if (expandingAll || isScrolling) return;
+                        if (isScrolling) return;
                         
                         var $this = $(this);
                         var targetOffset = $this.offset().top - 100; // 100px buffer from top
@@ -152,15 +159,15 @@ var ROUTING = (function() {
                         }
                     });
 
-                    if (typeof enableTalentTooltips === 'function') {
-                        enableTalentTooltips();
+                    if (typeof UI_MANAGEMENT !== 'undefined' && UI_MANAGEMENT.enableTalentTooltips) {
+                        UI_MANAGEMENT.enableTalentTooltips();
                     }
 
                     if (typeof fillTalentAvailability === 'function') {
                         fillTalentAvailability(DATA_LOADER.getData(), category);
                     }
                     if (typeof updateFinished === 'function') {
-                        updateFinished();
+                        UI_MANAGEMENT.updateFinished();
                     }
                 });
             }),
@@ -190,7 +197,15 @@ var ROUTING = (function() {
                     
                     // For races overview, show the news content like the original
                     if (typeof navRaces === 'function') {
-                        $("#side-nav").html(createMobileNavigation(navRaces(DATA_LOADER.getData())));
+                        $("#side-nav").html(UI_MANAGEMENT.createMobileNavigation(navRaces(DATA_LOADER.getData())));
+                        // Convert Bootstrap attributes for dynamic content - FIX FOR ACCORDION CLICKS
+                        if (window.convertBootstrapAttributes) {
+                            window.convertBootstrapAttributes(document.getElementById('side-nav'));
+                        }
+                        // Convert Bootstrap attributes for dynamic content - FIX FOR ACCORDION CLICKS
+                        if (window.convertBootstrapAttributes) {
+                            window.convertBootstrapAttributes(document.getElementById('side-nav'));
+                        }
                     }
                     // Show news/overview content for races main page
                     if ($("#news").length) {
@@ -200,7 +215,7 @@ var ROUTING = (function() {
                     }
                     UTILS.scrollToId();
                     if (typeof updateFinished === 'function') {
-                        updateFinished();
+                        UI_MANAGEMENT.updateFinished();
                     }
                 });
             }),
@@ -220,6 +235,10 @@ var ROUTING = (function() {
                     // Ensure sidebar navigation is populated
                     if (!$("#nav-races").length || !$("#races-navigation").length) {
                         $("#side-nav").html(UI_MANAGEMENT.createMobileNavigation(navRaces(DATA_LOADER.getData())));
+                        // Convert Bootstrap attributes for dynamic content - FIX FOR ACCORDION CLICKS
+                        if (window.convertBootstrapAttributes) {
+                            window.convertBootstrapAttributes(document.getElementById('side-nav'));
+                        }
                     }
                     
                     var raceData = DATA_LOADER.getData().races && DATA_LOADER.getData().races.races_by_id && DATA_LOADER.getData().races.races_by_id[r];
@@ -242,8 +261,8 @@ var ROUTING = (function() {
                     } else {
                         $("#content").html('<p>Loading race: ' + r + '...</p>');
                     }
-                    if (typeof enableTalentTooltips === 'function') {
-                        enableTalentTooltips();
+                    if (typeof UI_MANAGEMENT !== 'undefined' && UI_MANAGEMENT.enableTalentTooltips) {
+                        UI_MANAGEMENT.enableTalentTooltips();
                     }
                     if (typeof fillRaceTalents === 'function') {
                         fillRaceTalents(DATA_LOADER.getData(), r);
@@ -251,7 +270,7 @@ var ROUTING = (function() {
 
                     UTILS.scrollToId();
                     if (typeof updateFinished === 'function') {
-                        updateFinished();
+                        UI_MANAGEMENT.updateFinished();
                     }
                 });
             }),
@@ -272,6 +291,10 @@ var ROUTING = (function() {
                     // Ensure sidebar navigation is populated
                     if (!$("#nav-races").length || !$("#races-navigation").length) {
                         $("#side-nav").html(UI_MANAGEMENT.createMobileNavigation(navRaces(DATA_LOADER.getData())));
+                        // Convert Bootstrap attributes for dynamic content - FIX FOR ACCORDION CLICKS
+                        if (window.convertBootstrapAttributes) {
+                            window.convertBootstrapAttributes(document.getElementById('side-nav'));
+                        }
                     }
                     
                     var raceData = DATA_LOADER.getData().races && DATA_LOADER.getData().races.races_by_id && DATA_LOADER.getData().races.races_by_id[r];
@@ -291,8 +314,8 @@ var ROUTING = (function() {
                     } else {
                         $("#content").html('<p>Loading race: ' + r + '...</p>');
                     }
-                    if (typeof enableTalentTooltips === 'function') {
-                        enableTalentTooltips();
+                    if (typeof UI_MANAGEMENT !== 'undefined' && UI_MANAGEMENT.enableTalentTooltips) {
+                        UI_MANAGEMENT.enableTalentTooltips();
                     }
                     if (typeof fillRaceTalents === 'function') {
                         fillRaceTalents(DATA_LOADER.getData(), r);
@@ -300,7 +323,7 @@ var ROUTING = (function() {
 
                     UTILS.scrollToId();
                     if (typeof updateFinished === 'function') {
-                        updateFinished();
+                        UI_MANAGEMENT.updateFinished();
                     }
                 });
             }),
@@ -320,7 +343,11 @@ var ROUTING = (function() {
                     
                     // For classes overview, show the news content like the original
                     if (typeof navClasses === 'function') {
-                        $("#side-nav").html(createMobileNavigation(navClasses(DATA_LOADER.getData())));
+                        $("#side-nav").html(UI_MANAGEMENT.createMobileNavigation(navClasses(DATA_LOADER.getData())));
+                        // Convert Bootstrap attributes for dynamic content - FIX FOR ACCORDION CLICKS
+                        if (window.convertBootstrapAttributes) {
+                            window.convertBootstrapAttributes(document.getElementById('side-nav'));
+                        }
                     }
                     // Show news/overview content for classes main page
                     if ($("#news").length) {
@@ -330,7 +357,7 @@ var ROUTING = (function() {
                     }
                     UTILS.scrollToId();
                     if (typeof updateFinished === 'function') {
-                        updateFinished();
+                        UI_MANAGEMENT.updateFinished();
                     }
                 });
             }),
@@ -350,6 +377,10 @@ var ROUTING = (function() {
                     // Ensure sidebar navigation is populated
                     if (!$("#nav-classes").length || !$("#classes-navigation").length) {
                         $("#side-nav").html(UI_MANAGEMENT.createMobileNavigation(navClasses(DATA_LOADER.getData())));
+                        // Convert Bootstrap attributes for dynamic content - FIX FOR ACCORDION CLICKS
+                        if (window.convertBootstrapAttributes) {
+                            window.convertBootstrapAttributes(document.getElementById('side-nav'));
+                        }
                     }
                     
                     var classData = DATA_LOADER.getData().classes && DATA_LOADER.getData().classes.classes_by_id && DATA_LOADER.getData().classes.classes_by_id[cls];
@@ -372,8 +403,8 @@ var ROUTING = (function() {
                     } else {
                         $("#content").html('<p>Loading class: ' + cls + '...</p>');
                     }
-                    if (typeof enableTalentTooltips === 'function') {
-                        enableTalentTooltips();
+                    if (typeof UI_MANAGEMENT !== 'undefined' && UI_MANAGEMENT.enableTalentTooltips) {
+                        UI_MANAGEMENT.enableTalentTooltips();
                     }
                     if (typeof fillClassTalents === 'function') {
                         fillClassTalents(DATA_LOADER.getData(), cls);
@@ -384,7 +415,7 @@ var ROUTING = (function() {
 
                     UTILS.scrollToId();
                     if (typeof updateFinished === 'function') {
-                        updateFinished();
+                        UI_MANAGEMENT.updateFinished();
                     }
                 });
             }),
@@ -405,6 +436,10 @@ var ROUTING = (function() {
                     // Ensure sidebar navigation is populated
                     if (!$("#nav-classes").length || !$("#classes-navigation").length) {
                         $("#side-nav").html(UI_MANAGEMENT.createMobileNavigation(navClasses(DATA_LOADER.getData())));
+                        // Convert Bootstrap attributes for dynamic content - FIX FOR ACCORDION CLICKS
+                        if (window.convertBootstrapAttributes) {
+                            window.convertBootstrapAttributes(document.getElementById('side-nav'));
+                        }
                     }
                     
                     var classData = DATA_LOADER.getData().classes && DATA_LOADER.getData().classes.classes_by_id && DATA_LOADER.getData().classes.classes_by_id[cls];
@@ -424,8 +459,8 @@ var ROUTING = (function() {
                     } else {
                         $("#content").html('<p>Loading class: ' + cls + '...</p>');
                     }
-                    if (typeof enableTalentTooltips === 'function') {
-                        enableTalentTooltips();
+                    if (typeof UI_MANAGEMENT !== 'undefined' && UI_MANAGEMENT.enableTalentTooltips) {
+                        UI_MANAGEMENT.enableTalentTooltips();
                     }
                     if (typeof fillClassTalents === 'function') {
                         fillClassTalents(DATA_LOADER.getData(), cls);
@@ -436,7 +471,7 @@ var ROUTING = (function() {
 
                     UTILS.scrollToId();
                     if (typeof updateFinished === 'function') {
-                        updateFinished();
+                        UI_MANAGEMENT.updateFinished();
                     }
                 });
             }),
@@ -452,7 +487,11 @@ var ROUTING = (function() {
                     if (typeof loadItemsData === 'function') {
                         loadItemsData().then(function() {
                             if (typeof navItems === 'function') {
-                                $("#side-nav").html(createMobileNavigation(navItems()));
+                                $("#side-nav").html(UI_MANAGEMENT.createMobileNavigation(navItems()));
+                                // Convert Bootstrap attributes for dynamic content - FIX FOR ACCORDION CLICKS
+                                if (window.convertBootstrapAttributes) {
+                                    window.convertBootstrapAttributes(document.getElementById('side-nav'));
+                                }
                             }
                             if (typeof listItems === 'function') {
                                 $("#content").html(listItems('all'));
@@ -478,7 +517,7 @@ var ROUTING = (function() {
                     }
                     UTILS.scrollToId();
                     if (typeof updateFinished === 'function') {
-                        updateFinished();
+                        UI_MANAGEMENT.updateFinished();
                     }
                 });
             }),
@@ -495,7 +534,7 @@ var ROUTING = (function() {
                     }
                     UTILS.scrollToId();
                     if (typeof updateFinished === 'function') {
-                        updateFinished();
+                        UI_MANAGEMENT.updateFinished();
                     }
                 });
             }),
@@ -517,19 +556,6 @@ var ROUTING = (function() {
         hasher.initialized.add(parseHash);
         hasher.changed.add(parseHash);
         
-        // Add Google Analytics tracking
-        if (typeof _gaq !== 'undefined') {
-            hasher.changed.add(function() { 
-                if (typeof _gaq !== 'undefined') {
-                    _gaq.push(['_trackPageview', location.pathname + location.search + location.hash]);
-                }
-            });
-        }
-        
-        // Add Google Ad refresh if available
-        if (typeof googletag !== 'undefined' && googletag.pubads) {
-            hasher.changed.add(function() { googletag.pubads().refresh([ad_slot]); });
-        }
         
         hasher.init();
     }

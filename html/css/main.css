@@ -1,5 +1,6 @@
 /*
- * HTML5 Boilerplate
+ * HTML5 Boilerplate - UPDATED 2025-09-06 15:54 - Cache Bust v2
+ * Fixed mobile header positioning and popup centering
  *
  * What follows is the result of much research on cross-browser styling.
  * Credit left inline and big thanks to Nicolas Gallagher, Jonathan Neal,
@@ -135,7 +136,7 @@ html, body, #side-nav-container, #content-container
     position: fixed;
     top: 45px; /* Position directly below the compact fixed header */
     left: 0;
-    width: 280px;
+    width: 320px; /* Default wider sidebar for desktop */
     min-width: 220px;
     max-width: 450px;
     height: calc(100vh - 45px); /* Adjust height to account for compact header */
@@ -161,10 +162,10 @@ html, body, #side-nav-container, #content-container
 #content
 {
     padding: 20px; /* Uniform padding on all sides */
-    margin-left: 280px; /* Base margin, will be adjusted by JavaScript */
+    margin-left: 320px; /* Updated for wider sidebar */
     margin-right: 0; /* No right margin to prevent fake sidebar */
     box-sizing: border-box;
-    width: calc(100% - 280px); /* Calculate width to fill remaining space */
+    width: calc(100% - 320px); /* Calculate width to fill remaining space */
     max-width: none;
     min-height: calc(100vh - 45px); /* Ensure content area fills available space */
     background-color: var(--bg-primary);
@@ -187,7 +188,8 @@ html, body, #side-nav-container, #content-container
     margin: 0; /* Remove all margins from page-header */
     display: flex;
     align-items: center; /* Center content vertically */
-    justify-content: space-between; /* Distribute space between elements */
+    justify-content: flex-start; /* Change from space-between to flex-start for better control */
+    gap: 15px; /* Add gap instead of space-between for better control */
     height: 45px; /* Smaller height like when it was sticky */
     background: #272b30; /* Ensure background is always visible */
     border-bottom: 1px solid #444; /* Add subtle border for separation */
@@ -205,37 +207,88 @@ html, body, #side-nav-container, #content-container
 
 #content-header .nav-pills
 {
-    flex: 1; /* Take up available space in the center */
-    display: flex;
-    justify-content: center; /* Center the navigation pills */
-    margin: 0 15px; /* Add some space on sides */
+    /* Use Bootstrap me-auto pattern - no manual centering needed */
+    margin: 0; /* No manual margins needed with Bootstrap gap utilities */
 }
 
 #content-header .nav-pills li
 {
-    margin: 0 4px; /* Reduced margin between nav items */
+    /* No margins needed - using gap in parent container */
 }
 
 #content-header .nav-pills li a
 {
-    padding: 6px 10px; /* 6px top/bottom, 10px left/right for better look */
+    /* Default styling - conservative sizing to prevent wrapping */
+    padding: 6px 14px;
+    font-size: 14px; /* Conservative default to prevent wrapping */
+    white-space: nowrap;
+    margin: 0;
+}
+
+form[role="search"] {
+    align-items: center !important;
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
 .header-tools
 {
-    display: flex;
-    align-items: center;
-    gap: 10px; /* Space between tools */
-    flex-shrink: 0; /* Prevent tools from shrinking */
+    /* Bootstrap classes handle flex layout - minimal base styling */
+    /* Using Bootstrap gap-2 and align-items-center classes in HTML */
+}
+
+/* Search form container - separate from header-tools */
+form[role="search"] .search-container
+{
+    position: relative !important;
+    width: 100%;
+    max-width: 200px;
+    display: flex !important; /* Override the inline-block from general .search-container */
+    align-items: center !important; /* Ensure vertical centering */
+}
+
+/* Override any conflicting search container styles */
+form[role="search"] .search-container,
+form[role="search"] .search-container * {
+    margin: 0 !important;
+    vertical-align: top !important;
+}
+
+/* Twitter Typeahead creates complex nested structure - control it properly */
+form[role="search"] .search-container .twitter-typeahead {
+    position: relative !important;
+    display: inline-block !important;
+    vertical-align: top !important;
+    width: 100% !important;
+    max-width: 200px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* The actual visible input - this should be the only one taking document space */
+form[role="search"] .search-container .tt-input {
+    position: relative !important;
+    display: block !important;
+    width: 100% !important;
+    max-width: 200px;
+    min-width: 120px;
+    font-size: 13px !important;
+    padding: 5px 30px 5px 10px !important; 
+    height: auto !important;
+    box-sizing: border-box !important;
+    z-index: 2 !important;
+    margin: 0 !important;
 }
 
 /* Give header fields the same size.
  * Not sure if there's a cleaner way of doing this.
  */
-.header-tools input[type='text'], .header-tools input[type='number'], .header-tools select
+.header-tools select
 {
-    border: 1px;
-    padding: 1px;
+    /* Default select styling - responsive overrides handle specifics */
+    font-size: 12px;
+    padding: 4px 6px;
+    min-width: 55px;
 }
 
 .stat-power-container {
@@ -405,22 +458,22 @@ a:hover, a:focus {
 
 /* Top-level navigation items (expandable dropdowns) */
 #side-nav > ul > li > a {
-    font-size: 18px;
+    font-size: 15px;
     font-weight: bold;
-    padding: 12px 15px;
+    padding: 8px 15px;
 }
 
 /* Second-level navigation items (nested under dropdowns) */
 #side-nav > ul > li > ul > li > a {
     padding: 0 15px 0 40px;
-    font-size: 16px;
+    font-size: 13px;
     line-height: 1.4; /* Ensure readable line height without padding */
 }
 
 /* Third-level navigation items (for hierarchical items navigation) */
 #side-nav > ul > li > ul > li > ul > li > a {
     padding: 0 15px 0 60px;
-    font-size: 15px;
+    font-size: 12px;
     line-height: 1.3;
 }
 
@@ -468,7 +521,7 @@ a:hover, a:focus {
     --bs-accordion-bg: transparent;
     --bs-accordion-btn-padding-x: 1rem;
     --bs-accordion-btn-padding-y: 0.5rem;
-    --bs-accordion-btn-font-size: 0.9rem;
+    --bs-accordion-btn-font-size: 0.8rem;
 }
 
 .nested-accordion .accordion-button {
@@ -547,18 +600,18 @@ a:hover, a:focus {
 /* Mobile responsiveness for accordions */
 @media (max-width: 767.98px) {
     .navigation-accordion .accordion-button {
-        font-size: 0.9rem;
+        font-size: 1rem;
         padding: 0.5rem 0.75rem;
     }
     
     .nested-accordion .accordion-button {
-        font-size: 0.8rem;
+        font-size: 0.9rem;
         padding: 0.4rem 0.75rem;
     }
     
     .accordion-body .list-group-item {
         padding: 0.4rem 0.75rem;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
     }
 }
 
@@ -1334,12 +1387,16 @@ table.old-new td {
     border: none;
     color: #fff;
     font-size: 20px;
-    padding: 8px;
+    padding: 6px 8px;
     cursor: pointer;
     z-index: 1060;
     margin-right: 15px;
     border-radius: 3px;
     transition: background-color 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
 }
 
 .mobile-nav-toggle:hover {
@@ -1374,92 +1431,243 @@ table.old-new td {
    Responsive Layout Styles
    ========================================================================== */
 
-/* Tablet and below */
+/* Tablet and below - narrower sidebar to give more content space */
 @media (max-width: 991.98px) {
     #side-nav-container {
-        width: 320px; /* Slightly wider on tablets */
+        width: 280px; /* Narrower on tablets for more content space */
     }
     
     #content {
-        margin-left: 320px;
-        width: calc(100% - 320px);
+        margin-left: 280px; /* Adjust content for narrower sidebar */
+        width: calc(100% - 280px);
     }
 }
 
 /* Medium screens - prevent navigation from wrapping while using available space */
-@media (max-width: 1200px) and (min-width: 768px) {
+/* Extra-large screens 1400px+ - Full spacing and features */
+@media (min-width: 1400px) {
     #content-header {
-        flex-wrap: nowrap; /* Prevent wrapping */
-        padding: 5px 10px; /* Reasonable padding */
-        gap: 8px; /* Add consistent gap between flex items */
+        padding: 10px 20px 8px 20px;
+        gap: 20px;
+        align-items: center; /* Ensure proper vertical centering */
     }
     
     #content-header h1 {
-        font-size: clamp(24px, 2.5vw, 30px); /* Responsive title size */
-        margin-left: 5px;
-        flex-shrink: 0; /* Don't shrink title */
-    }
-    
-    #content-header .nav-pills {
-        flex: 1; /* Take available space */
-        display: flex;
-        justify-content: center;
-        margin: 0 10px;
-        min-width: 280px; /* Minimum width to fit 4 buttons */
-    }
-    
-    #content-header .nav-pills li {
-        flex: 1; /* Each nav item takes equal space */
-        margin: 0 2px;
+        font-size: 32px;
+        margin-left: 10px;
+        line-height: 1.2; /* Prevent vertical overflow */
     }
     
     #content-header .nav-pills li a {
-        padding: 6px 8px;
-        font-size: clamp(12px, 1.2vw, 15px); /* Responsive nav font */
-        text-align: center;
-        display: block;
-        white-space: nowrap; /* Prevent text wrapping */
+        padding: 8px 20px;
+        font-size: 18px; /* Increased from 16px for better readability */
+        margin: 0 4px;
+        line-height: 1.3;
     }
     
     .header-tools {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        flex-shrink: 0; /* Don't shrink tools */
-        min-width: 200px; /* Minimum width for tools */
+        align-items: center; /* Ensure tools stay centered */
     }
     
-    .header-tools .search-container {
-        position: relative;
-    }
+    /* Search form styling handled separately */
     
-    .header-tools .search-container input {
-        width: clamp(60px, 8vw, 120px); /* Responsive search width */
-        font-size: clamp(11px, 1vw, 14px);
-        padding: 4px 8px;
+    form[role="search"] .search-container input.typeahead {
+        max-width: 220px !important;
+        min-width: 160px;
+        font-size: 14px !important;
+        padding: 6px 30px 6px 12px !important; /* Keep right padding for clear button */
     }
     
     .header-tools .ver-dropdown-container,
     .header-tools .mastery-dropdown-container {
-        font-size: clamp(10px, 1vw, 13px);
-        white-space: nowrap; /* Prevent label wrapping */
+        font-size: 13px;
+        line-height: 1.2;
+        white-space: nowrap; /* Prevent line wrapping */
+        display: inline-block; /* Keep on same line */
     }
     
     .header-tools select {
-        font-size: clamp(10px, 1vw, 13px);
-        padding: 3px 6px;
-        min-width: 50px;
+        font-size: 13px;
+        padding: 5px 8px;
+        min-width: 65px;
+        height: auto;
     }
     
     .header-tools .settings-dropdown {
-        font-size: clamp(14px, 1.5vw, 18px);
+        font-size: 18px;
+    }
+}
+
+/* Large screens 1200px-1399px - Balanced layout preventing wrapping */
+/* REFACTORED: Bootstrap xl breakpoint (1200px+) - replaced complex range query */
+@media (min-width: 1200px) {
+    #content-header {
+        padding: 10px 15px 8px 15px;
+        gap: 15px;
+        align-items: center;
     }
     
-    /* Only hide expand/collapse on smaller screens within this range */
-    @media (max-width: 950px) {
-        .expand-all, .collapse-all {
-            display: none;
-        }
+    #content-header h1 {
+        font-size: clamp(28px, 2.2vw, 30px);
+        margin-left: 8px;
+        line-height: 1.2;
+    }
+    
+    #content-header .nav-pills li a {
+        padding: 8px 18px;
+        font-size: 17px; /* Increased from 15px */
+        margin: 0 2px;
+        white-space: nowrap;
+        line-height: 1.3;
+    }
+    
+    .header-tools {
+        align-items: center;
+    }
+    
+    form[role="search"] .search-container input.typeahead {
+        max-width: 180px !important;
+        min-width: 140px;
+        font-size: 13px !important;
+        padding: 5px 30px 5px 10px !important; /* Keep right padding for clear button */
+    }
+    
+    .header-tools .ver-dropdown-container,
+    .header-tools .mastery-dropdown-container {
+        font-size: 12px;
+        line-height: 1.2;
+        white-space: nowrap;
+        display: inline-block;
+    }
+    
+    .header-tools select {
+        font-size: 12px;
+        padding: 4px 6px;
+        min-width: 55px;
+        height: auto;
+    }
+    
+    .header-tools .settings-dropdown {
+        font-size: 16px;
+    }
+    
+    /* Hide expand/collapse to save space */
+    .expand-all, .collapse-all {
+        display: none;
+    }
+}
+
+/* Medium screens 992px-1199px - Compact but readable */
+/* REFACTORED: Bootstrap lg breakpoint (992px+) - replaced complex range query */
+@media (min-width: 992px) {
+    #content-header {
+        padding: 10px 12px 8px 12px;
+        gap: 12px;
+        align-items: center;
+    }
+    
+    #content-header h1 {
+        font-size: clamp(25px, 2.4vw, 27px);
+        margin-left: 6px;
+        line-height: 1.2;
+    }
+    
+    #content-header .nav-pills li a {
+        padding: 7px 16px;
+        font-size: 16px; /* Increased from 14px */
+        margin: 0 1px;
+        line-height: 1.3;
+    }
+    
+    .header-tools {
+        align-items: center;
+    }
+    
+    form[role="search"] .search-container input.typeahead {
+        max-width: 160px !important;
+        min-width: 120px;
+        font-size: 12px !important;
+        padding: 5px 30px 5px 8px !important; /* Keep right padding for clear button */
+    }
+    
+    .header-tools .ver-dropdown-container,
+    .header-tools .mastery-dropdown-container {
+        font-size: 11px;
+        line-height: 1.2;
+        white-space: nowrap;
+        display: inline-block;
+    }
+    
+    .header-tools select {
+        font-size: 11px;
+        padding: 3px 5px;
+        min-width: 50px;
+        height: auto;
+    }
+    
+    .header-tools .settings-dropdown {
+        font-size: 15px;
+    }
+    
+    .expand-all, .collapse-all {
+        display: none;
+    }
+}
+
+/* Bootstrap md breakpoint (768px-991.98px) - Consolidated tablet styles */
+@media (min-width: 768px) and (max-width: 991.98px) {
+    #content-header {
+        padding: 12px 10px 10px 10px;
+        gap: 10px;
+        align-items: center;
+    }
+    
+    #content-header h1 {
+        font-size: clamp(22px, 2.5vw, 25px);
+        margin-left: 5px;
+        line-height: 1.2;
+    }
+    
+    #content-header .nav-pills li a {
+        padding: 6px 12px; /* Optimal for tablet screens */
+        font-size: 14px;
+        margin: 0;
+        line-height: 1.3;
+    }
+    
+    .header-tools {
+        align-items: center;
+    }
+    
+    form[role="search"] .search-container input.typeahead {
+        max-width: 140px !important;
+        min-width: 100px;
+        font-size: 11px !important;
+        padding: 4px 30px 4px 6px !important; /* Keep right padding for clear button */
+    }
+    
+    .header-tools .ver-dropdown-container,
+    .header-tools .mastery-dropdown-container {
+        font-size: 10px;
+        line-height: 1.2;
+        white-space: nowrap;
+        display: inline-block;
+    }
+    
+    .header-tools select {
+        font-size: 10px;
+        padding: 3px 4px;
+        min-width: 45px;
+        height: auto;
+    }
+    
+    .header-tools .settings-dropdown {
+        font-size: 14px;
+    }
+    
+    /* Hide expand/collapse on tablets */
+    .expand-all, .collapse-all {
+        display: none;
     }
 }
 
@@ -1497,23 +1705,30 @@ table.old-new td {
         padding: 15px 10px;
     }
     
-    /* Header adjustments for mobile */
+    /* Header adjustments for mobile - CACHE BUST v4 */
     #content-header {
-        padding: 8px 15px;
+        height: auto !important;
+        min-height: 50px !important;
+        padding: 16px 15px 12px 15px !important;
         flex-wrap: wrap;
         gap: 10px;
+        align-items: center !important;
+        box-sizing: border-box;
+        display: flex !important;
+        justify-content: space-between !important;
     }
     
     #content-header h1 {
         font-size: 24px;
-        margin-left: 0;
+        margin: 0;
         flex: 1;
         min-width: 0;
+        line-height: 1.2;
+        display: flex;
+        align-items: center;
     }
     
-    /* All header-tools related styling removed - nav-pills, header-tools, search-container, 
-       typeahead, ver-dropdown-container, mastery-dropdown-container, and settings-dropdown 
-       are now hidden on mobile devices. Navigation is handled by the hamburger menu. */
+    /* Header tools hidden on mobile - navigation handled by hamburger menu */
     
     /* Hide expand/collapse buttons on mobile */
     .expand-all, .collapse-all {
@@ -1592,8 +1807,7 @@ table.old-new td {
         font-size: 20px;
     }
     
-    /* header-tools and all related elements (search-container, ver-dropdown-container) 
-       styling removed - these elements are now hidden on mobile */
+    /* Header tools hidden on mobile */
     
     /* Sidebar full screen on mobile - override the smaller width setting */
     #side-nav-container {
@@ -1990,17 +2204,26 @@ table.old-new td {
 
 /* Close button */
 #talent-popup .popup-close {
-    background: none;
-    border: none;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
     font-size: 24px;
     cursor: pointer;
     color: #999;
-    padding: 0;
+    padding: 6px 10px;
     margin-left: 10px;
+    min-width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
 }
 
 #talent-popup .popup-close:hover {
     color: #ffffff;
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
 }
 
 /* Popup content */
@@ -2052,17 +2275,26 @@ table.old-new td {
 }
 
 #item-popup .popup-close {
-    background: none;
-    border: none;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
     font-size: 24px;
     cursor: pointer;
     color: #999;
-    padding: 0;
+    padding: 6px 10px;
     margin-left: 10px;
+    min-width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
 }
 
 #item-popup .popup-close:hover {
     color: #ffffff;
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
 }
 
 #item-popup .popup-content {
@@ -2409,6 +2641,22 @@ table.old-new td {
     font-size: 18px;
     line-height: 1;
     display: none;
+    z-index: 10; /* Ensure it stays within container bounds */
+    max-height: 20px; /* Prevent vertical overflow */
+}
+
+/* Ensure search-clear positioning works with flex container */
+form[role="search"] .search-clear {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #bbb;
+    cursor: pointer;
+    font-size: 16px; /* Slightly smaller for better alignment */
+    line-height: 1;
+    display: none;
+    z-index: 15;
 }
 
 .search-clear:hover {
@@ -2420,14 +2668,29 @@ table.old-new td {
     display: block;
 }
 
-/* Hide the typeahead hint input - it should be behind the main input */
-.tt-hint {
-    color: transparent !important;
-    background-color: transparent !important;
-    border-color: transparent !important;
+/* The hint input must be absolutely positioned and not take up any layout space */
+form[role="search"] .search-container .tt-hint {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 1 !important; /* Behind the actual input but visible for hints */
+    color: rgba(255,255,255,0.4) !important; /* Subtle hint color */
+    background: transparent !important;
+    border: transparent !important;
     box-shadow: none !important;
-    position: absolute;
-    z-index: -1 !important;
+    pointer-events: none !important; /* Don't interfere with clicks */
+    margin: 0 !important;
+    padding: 5px 30px 5px 10px !important; /* Match the actual input */
+}
+
+/* Ensure nested spans in typeahead don't interfere with layout */
+form[role="search"] .search-container .twitter-typeahead > span {
+    position: relative !important;
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
 /* Manual highlighting for typeahead suggestions */
@@ -2630,14 +2893,14 @@ table.old-new td {
 @media screen and (max-width: 767.98px) {
     html body #talent-popup-overlay #talent-popup,
     html body #item-popup-overlay #item-popup {
-        width: calc(100vw - 20px) !important;
-        max-width: calc(100vw - 20px) !important;
-        min-width: calc(100vw - 20px) !important;
+        width: calc(100vw - 40px) !important;
+        max-width: calc(100vw - 40px) !important;
+        min-width: calc(100vw - 40px) !important;
         /* Flexible height - expand to content but with limits */
         height: auto !important;
         max-height: calc(100vh - 40px) !important;
         min-height: 300px !important;
-        margin: 20px 10px !important;
+        margin: 0 !important; /* Margins are ignored with fixed positioning */
         padding: 0 !important; /* Remove padding from container, add to content */
         transform: translate(-50%, -50%) !important;
         top: 50% !important;
@@ -2691,9 +2954,10 @@ table.old-new td {
 @media screen and (max-width: 479.98px) {
     html body #talent-popup-overlay #talent-popup,
     html body #item-popup-overlay #item-popup {
-        max-width: calc(100vw - 10px) !important;
+        width: calc(100vw - 20px) !important;
+        max-width: calc(100vw - 20px) !important;
         max-height: calc(100vh - 20px) !important;
-        margin: 10px 5px !important;
+        margin: 0 !important;
         padding: 10px !important;
         transform: translate(-50%, -50%) !important;
         top: 50% !important;
@@ -2754,9 +3018,10 @@ table.old-new td {
 @media screen and (min-width: 480px) and (max-width: 575.98px) {
     body #talent-popup-overlay #talent-popup,
     body #item-popup-overlay #item-popup {
-        max-width: calc(100vw - 16px) !important;
+        width: calc(100vw - 30px) !important;
+        max-width: calc(100vw - 30px) !important;
         max-height: calc(100vh - 30px) !important;
-        margin: 15px 8px !important;
+        margin: 0 !important;
         padding: 12px !important;
         transform: translate(-50%, -50%) !important;
         top: 50% !important;
@@ -2803,9 +3068,10 @@ table.old-new td {
 @media screen and (min-width: 576px) and (max-width: 767.98px) {
     body #talent-popup-overlay #talent-popup,
     body #item-popup-overlay #item-popup {
-        max-width: calc(100vw - 30px) !important;
+        width: calc(100vw - 40px) !important;
+        max-width: calc(100vw - 40px) !important;
         max-height: calc(100vh - 40px) !important;
-        margin: 20px 15px !important;
+        margin: 0 !important;
         padding: 15px !important;
         transform: translate(-50%, -50%) !important;
         top: 50% !important;

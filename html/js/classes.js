@@ -1,3 +1,32 @@
+/**
+ * Class Data Management Module
+ * Handles class and subclass data processing, navigation generation, and talent integration.
+ * Manages the complex relationships between classes, subclasses, and their talent trees.
+ * 
+ * Key responsibilities:
+ * - Processing raw class JSON data into normalized object structures
+ * - Creating bidirectional relationships between classes and subclasses  
+ * - Generating navigation HTML for class browsing
+ * - Loading and displaying class talent trees with modal interactions
+ * - Handling async talent loading with proper event management
+ * 
+ * Data flow: JSON files → fixupClasses() → navigation/display functions → talent loading
+ */
+
+/**
+ * Processes and normalizes class data after loading from JSON files.
+ * Converts ID references to object references, establishes bidirectional relationships,
+ * and creates lookup indexes for efficient access.
+ * 
+ * @function fixupClasses
+ * @param {Object} tome - ToME application context object
+ * @throws {Error} If DATA_LOADER or class data is not available
+ * @example
+ * // Called automatically after class data is loaded
+ * fixupClasses(tome);
+ * // After fixup: data.classes.class_list contains full class objects
+ * // After fixup: data.classes.classes_by_id provides HTML ID lookup
+ */
 function fixupClasses(tome) {
   var data = DATA_LOADER.getData();
     var c = data.classes;
@@ -28,10 +57,37 @@ function fixupClasses(tome) {
     data.fixups.classes = true;
 }
 
+/**
+ * Generates navigation HTML for the classes page.
+ * Renders the class navigation template with current class data.
+ * 
+ * @function navClasses
+ * @param {Object} tome - ToME application context object  
+ * @returns {string} HTML markup for class navigation
+ * @example
+ * var navigationHTML = navClasses(tome);
+ * // Returns HTML with class links and accordion structure
+ */
 function navClasses(tome) {
     return Handlebars.templates.class_nav(DATA_LOADER.getData().classes);
 }
 
+/**
+ * Generates detailed class information page for a specific class.
+ * Processes talent data, handles sorting of locked vs unlocked talents,
+ * and renders the complete class template with stats and abilities.
+ * 
+ * @function listClasses
+ * @param {Object} tome - ToME application context object
+ * @param {string} cls - HTML ID of the class to display (e.g., "archmage", "berserker")
+ * @returns {string} HTML markup for the complete class page
+ * @throws {Error} If class data is not found or invalid
+ * @example
+ * var classHTML = listClasses(tome, "archmage");
+ * // Returns full class page with stats, subclasses, and talent trees
+ * 
+ * listClasses(tome, "invalid-class"); // Handles gracefully
+ */
 function listClasses(tome, cls) {
     var classData = JSON.parse(JSON.stringify(DATA_LOADER.getData().classes.classes_by_id[cls])); // Deep clone to avoid modifying original
     
@@ -75,6 +131,15 @@ function fillClassTalents(tome, cls, callback) {
     // Setup talent modal handlers immediately
     setupTalentModalHandlers();
 
+    /**
+     * Internal helper to catalog talent categories needed for this class.
+     * Extracts talent category from talent type key and marks it for loading.
+     * 
+     * @inner
+     * @param {Array} value - Talent configuration [unlocked, mastery, displayName]
+     * @param {string} key - Talent type key like "spell/elemental" or "technique/combat"
+     * @param {Object} list - Parent talent types object (unused)
+     */
     function list_class_talents(value, key, list) {
         var category = key.split(/ ?\/ ?/)[0];
         load_talents[category] = load_talents[category] || {};
@@ -89,6 +154,12 @@ function fillClassTalents(tome, cls, callback) {
     var categories = _.keys(load_talents);
     var completed = 0;
     
+    /**
+     * Internal completion checker that fires callback when all talent categories are loaded.
+     * Sets up talent modal handlers and individual talent link handlers.
+     * 
+     * @inner
+     */
     function checkComplete() {
         completed++;
         if (completed >= categories.length) {
@@ -138,17 +209,17 @@ function fillClassTalents(tome, cls, callback) {
                 $container.html(talent_html);
                 
                 // Apply current icon size class for proper spacing
-                if (typeof imgSizeSettings !== 'undefined') {
-                    var currentSize = imgSizeSettings.get();
+                if (typeof UI_MANAGEMENT !== 'undefined' && UI_MANAGEMENT.imageSize) {
+                    var currentSize = UI_MANAGEMENT.imageSize.get();
                     $container.removeClass('icon-size-32 icon-size-48 icon-size-64')
                              .addClass('icon-size-' + currentSize);
                     
                     // Also apply spacing to parent list items
-                    imgSizeSettings.applyIconSizeClasses(currentSize);
+                    UI_MANAGEMENT.imageSize.applyIconSizeClasses(currentSize);
                 }
             });
 
-            markupHintLinks();
+            UI_MANAGEMENT.markupHintLinks();
             setupTalentModalHandlers();
             checkComplete();
         });
@@ -278,7 +349,7 @@ function showTalentModal(talentData) {
         
         // Enable tooltips for any new content
         if (typeof enableTalentTooltips === 'function') {
-            enableTalentTooltips();
+            UI_MANAGEMENT.enableTalentTooltips();
         }
     } catch (error) {
         alert('Error loading talent data: ' + error.message);
@@ -338,15 +409,6 @@ function showSimpleTalentPopup(talentId, talentType, talentName) {
     // Show popup
     $('#talent-popup-overlay').show();
     
-    // Debug: Log popup dimensions for mobile testing
-    console.log('Mobile popup debug:', {
-        popupWidth: $('#talent-popup').outerWidth(),
-        popupHeight: $('#talent-popup').outerHeight(),
-        viewportWidth: window.innerWidth,
-        viewportHeight: window.innerHeight,
-        computedMaxWidth: $('#talent-popup').css('max-width'),
-        computedMaxHeight: $('#talent-popup').css('max-height')
-    });
     // Create link to the specific talent page - format matches template: #talents/type/talent_id_html_encoded
     // Use toUnsafeHtmlId for talent type and toHtmlId for talent ID (matches template logic)
     var talentUrl = '#talents/' + toUnsafeHtmlId(talentType) + '/' + toHtmlId(talentId);
@@ -440,7 +502,7 @@ function displaySimpleTalentData(talent) {
 
 function updateTalentPopupHeader(talent) {
     // Create card-style header with icon and name
-    var displaySize = (typeof imgSizeSettings !== 'undefined') ? imgSizeSettings.get() : 48;
+    var displaySize = (typeof UI_MANAGEMENT !== 'undefined' && UI_MANAGEMENT.imageSize) ? UI_MANAGEMENT.imageSize.get() : 48;
     var headerHtml = '';
     
     // Add talent icon inline with the title

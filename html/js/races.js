@@ -1,3 +1,36 @@
+/**
+ * Race Data Management Module
+ * Handles race and subrace data processing, navigation generation, and racial talent integration.
+ * Manages complex race-to-talent mapping for special races like undead and unique naming conventions.
+ * 
+ * Key responsibilities:
+ * - Processing raw race JSON data into normalized object structures
+ * - Managing subrace relationships and experience penalties
+ * - Handling fallback images for races without portraits (drem, krog, etc.)
+ * - Complex race-to-talent mapping (whitehoof→whitehooves, ghoul→undead/ghoul)
+ * - Loading and displaying racial talent trees with modal interactions
+ * - Generating navigation HTML for race browsing
+ * 
+ * Special features:
+ * - Race name mapping table for talent type resolution
+ * - Async talent loading with completion tracking
+ * - Fallback image generation for portrait-less races
+ */
+
+/**
+ * Processes and normalizes race data after loading from JSON files.
+ * Converts ID references to object references, processes subrace relationships,
+ * handles fallback images for races without portraits, and creates lookup indexes.
+ * 
+ * @function fixupRaces
+ * @param {Object} tome - ToME application context object
+ * @throws {Error} If DATA_LOADER or race data is not available
+ * @example
+ * // Called automatically after race data is loaded
+ * fixupRaces(tome);
+ * // After fixup: data.races.race_list contains full race objects
+ * // After fixup: subraces have experience penalties and image arrays
+ */
 function fixupRaces(tome) {
     var data = DATA_LOADER.getData();
     var r = data.races;
@@ -54,10 +87,38 @@ function fixupRaces(tome) {
     data.fixups.races = true;
 }
 
+/**
+ * Generates navigation HTML for the races page.
+ * Renders the race navigation template with current race data.
+ * 
+ * @function navRaces
+ * @param {Object} tome - ToME application context object
+ * @returns {string} HTML markup for race navigation with expandable race categories
+ * @example
+ * var raceNavHTML = navRaces(tome);
+ * // Returns navigation with race categories and subcategories
+ */
 function navRaces(tome) {
     return Handlebars.templates.race_nav(DATA_LOADER.getData().races);
 }
 
+/**
+ * Generates detailed race information page for a specific race.
+ * Processes race talent data, handles special naming mappings for undead races,
+ * and renders the complete race template with stats, subraces, and racial talents.
+ * 
+ * @function listRaces
+ * @param {Object} tome - ToME application context object
+ * @param {string} r - HTML ID of the race to display (e.g., "human", "elf")
+ * @returns {string} HTML markup for the complete race page
+ * @throws {Error} If race data is not found
+ * @example
+ * var humanRaceHTML = listRaces(tome, "human");
+ * // Returns full race page with subraces, stats, and racial talents
+ * 
+ * var elfRaceHTML = listRaces(tome, "elf");
+ * // Returns elf race page with Shalore and Thalore subraces
+ */
 function listRaces(tome, r) {
     var data = DATA_LOADER.getData();
     var race = data.races.races_by_id[r];
@@ -235,8 +296,9 @@ function fillRaceTalents(tome, r, callback) {
                     $container.html(talent_html);
                     
                     // Apply current icon size settings
-                    if (typeof imgSizeSettings !== 'undefined') {
-                        imgSizeSettings.applyIconSizeClasses(imgSizeSettings.get());
+                    if (typeof UI_MANAGEMENT !== 'undefined' && UI_MANAGEMENT.imageSize) {
+                        var currentSize = UI_MANAGEMENT.imageSize.get();
+                        UI_MANAGEMENT.imageSize.applyIconSizeClasses(currentSize);
                     }
                 }
                 

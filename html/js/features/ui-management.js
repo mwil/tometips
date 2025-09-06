@@ -75,10 +75,10 @@ var UI_MANAGEMENT = (function() {
             // Always create main navigation menu - CSS will handle visibility
             var mainNav = '<div class="mobile-main-nav">';
             mainNav += '<ul class="mobile-main-nav-list">';
-            mainNav += '<li><a href="#races" data-nav="races">📊 Races</a></li>';
-            mainNav += '<li><a href="#classes" data-nav="classes">⚔️ Classes</a></li>';
-            mainNav += '<li><a href="#talents" data-nav="talents">🔮 Talents</a></li>';
-            mainNav += '<li><a href="#items" data-nav="items">🗡️ Items</a></li>';
+            mainNav += '<li><a href="#races" data-nav="races">Races</a></li>';
+            mainNav += '<li><a href="#classes" data-nav="classes">Classes</a></li>';
+            mainNav += '<li><a href="#talents" data-nav="talents">Talents</a></li>';
+            mainNav += '<li><a href="#items" data-nav="items">Items</a></li>';
             mainNav += '</ul></div>';
             
             return mainNav + (contentNav || '');
@@ -361,44 +361,6 @@ var UI_MANAGEMENT = (function() {
         }
     };
     
-    // =======================
-    // THEME MANAGEMENT
-    // =======================
-    
-    var ThemeManager = {
-        init: function() {
-            // Check for saved theme preference or default to light mode
-            const savedTheme = localStorage.getItem('theme');
-            const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            const initialTheme = savedTheme || (systemDark ? 'dark' : 'light');
-            
-            // Apply initial theme
-            document.documentElement.setAttribute('data-theme', initialTheme);
-            this.updateThemeToggleText(initialTheme);
-            
-            var self = this;
-            
-            // Theme toggle click handler
-            $('#theme-toggle').on('click', function(e) {
-                e.preventDefault();
-                const currentTheme = document.documentElement.getAttribute('data-theme');
-                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-                
-                document.documentElement.setAttribute('data-theme', newTheme);
-                localStorage.setItem('theme', newTheme);
-                self.updateThemeToggleText(newTheme);
-            });
-        },
-        
-        updateThemeToggleText: function(theme) {
-            const $toggle = $('#theme-toggle');
-            if (theme === 'dark') {
-                $toggle.text('☀️ Light mode');
-            } else {
-                $toggle.text('🌙 Dark mode');
-            }
-        }
-    };
     
     // =======================
     // TOOLTIP & LINK ENHANCEMENT
@@ -425,152 +387,13 @@ var UI_MANAGEMENT = (function() {
     };
     
     // =======================
-    // MOBILE NAVIGATION
+    // MOBILE NAVIGATION (REMOVED - HANDLED BY EVENTS.JS)
     // =======================
     
+    // Note: All mobile navigation event handling moved to events.js to avoid conflicts
+    // This provides global functions for events.js to call
     var MobileNavManager = {
-        init: function() {
-            var self = this;
-            
-            // Mobile nav toggle
-            $('.mobile-nav-toggle').on('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                self.toggle();
-            });
-            
-            // Close mobile nav when clicking overlay
-            $('.mobile-nav-overlay').on('click', function() {
-                self.close();
-            });
-            
-            // Handle main navigation clicks in mobile menu
-            $(document).on('click', '.mobile-main-nav a[data-nav]', function(e) {
-                e.preventDefault();
-                var navType = $(this).data('nav');
-                var hash = $(this).attr('href');
-                
-                // Add active state to clicked button
-                $('.mobile-main-nav a').removeClass('active');
-                $(this).addClass('active');
-                
-                // Navigate to the section WITHOUT closing mobile nav
-                window.location.hash = hash;
-            });
-            
-            // Close mobile nav when clicking outside sidebar
-            $(document).on('click', function(e) {
-                if (window.innerWidth <= 767.98) {
-                    var $target = $(e.target);
-                    var isMenuOpen = $('#side-nav-container').hasClass('mobile-nav-open');
-                    var isClickInsideSidebar = $target.closest('#side-nav-container').length > 0;
-                    var isClickOnToggle = $target.closest('.mobile-nav-toggle').length > 0;
-                    
-                    if (isMenuOpen && !isClickInsideSidebar && !isClickOnToggle) {
-                        self.close();
-                    }
-                }
-            });
-            
-            this.initSwipeGestures();
-            this.initResizeHandler();
-            
-            // Ensure mobile nav is closed on initial load if desktop size
-            if (window.innerWidth > 767.98) {
-                this.close();
-            }
-        },
-        
-        initSwipeGestures: function() {
-            var self = this;
-            var startX = null;
-            var startY = null;
-            
-            $(document).on('touchstart', function(e) {
-                if (window.innerWidth <= 767.98) {
-                    var touch = e.originalEvent.touches[0];
-                    startX = touch.clientX;
-                    startY = touch.clientY;
-                }
-            });
-            
-            $(document).on('touchmove', function(e) {
-                if (window.innerWidth <= 767.98 && startX !== null) {
-                    var touch = e.originalEvent.touches[0];
-                    var currentX = touch.clientX;
-                    var currentY = touch.clientY;
-                    var deltaX = currentX - startX;
-                    var deltaY = currentY - startY;
-                    
-                    // Detect horizontal swipe (more horizontal than vertical)
-                    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
-                        var isMenuOpen = $('#side-nav-container').hasClass('mobile-nav-open');
-                        
-                        // Swipe right to open (only if starting from left edge)
-                        if (deltaX > 0 && !isMenuOpen && startX < 50) {
-                            e.preventDefault();
-                            self.open();
-                            startX = null;
-                            startY = null;
-                        }
-                        // Swipe left to close (only if menu is open)
-                        else if (deltaX < -50 && isMenuOpen) {
-                            e.preventDefault();
-                            self.close();
-                            startX = null;
-                            startY = null;
-                        }
-                    }
-                }
-            });
-            
-            $(document).on('touchend', function() {
-                startX = null;
-                startY = null;
-            });
-        },
-        
-        initResizeHandler: function() {
-            var self = this;
-            var resizeTimeout;
-            
-            $(window).on('resize', function() {
-                // Close mobile nav if window becomes desktop size
-                if (window.innerWidth > 767.98) {
-                    self.close();
-                }
-                
-                // Debounce the refresh to avoid excessive calls
-                clearTimeout(resizeTimeout);
-                resizeTimeout = setTimeout(function() {
-                    self.refreshCurrentNavigation();
-                }, 150);
-            });
-        },
-        
-        refreshCurrentNavigation: function() {
-            var currentHash = window.location.hash;
-            var $sideNav = $("#side-nav");
-            var currentContent = $sideNav.html();
-            
-            // Only refresh if there's existing content
-            if (currentContent) {
-                var contentNav = '';
-                
-                // Extract the content navigation part (everything after mobile-main-nav div)
-                if (currentContent.indexOf('mobile-main-nav') !== -1) {
-                    var mobileNavMatch = currentContent.match(/<div class="mobile-main-nav">.*?<\/div>(.*)/s);
-                    contentNav = mobileNavMatch ? mobileNavMatch[1] : currentContent;
-                } else {
-                    // No mobile nav found, use all content as content nav
-                    contentNav = currentContent;
-                }
-                
-                // Regenerate with current screen size logic
-                $sideNav.html(LayoutManager.createMobileNavigation(contentNav));
-            }
-        },
-        
+        // Expose toggle/open/close functions for events.js to use
         toggle: function() {
             var $sidebar = $('#side-nav-container');
             if ($sidebar.hasClass('mobile-nav-open')) {
@@ -611,6 +434,29 @@ var UI_MANAGEMENT = (function() {
                 $sidebar.removeAttr('aria-hidden'); // Remove aria-hidden to prevent conflicts
             }
             $('.mobile-nav-toggle').attr('aria-expanded', 'false');
+        },
+        
+        refreshCurrentNavigation: function() {
+            var currentHash = window.location.hash;
+            var $sideNav = $("#side-nav");
+            var currentContent = $sideNav.html();
+            
+            // Only refresh if there's existing content
+            if (currentContent) {
+                var contentNav = '';
+                
+                // Extract the content navigation part (everything after mobile-main-nav div)
+                if (currentContent.indexOf('mobile-main-nav') !== -1) {
+                    var mobileNavMatch = currentContent.match(/<div class="mobile-main-nav">.*?<\/div>(.*)/s);
+                    contentNav = mobileNavMatch ? mobileNavMatch[1] : currentContent;
+                } else {
+                    // No mobile nav found, use all content as content nav
+                    contentNav = currentContent;
+                }
+                
+                // Regenerate with current screen size logic
+                $sideNav.html(LayoutManager.createMobileNavigation(contentNav));
+            }
         }
     };
     
@@ -635,15 +481,30 @@ var UI_MANAGEMENT = (function() {
         imageSize: ImageSizeManager,
         configureImgSize: function() { return ImageSizeManager.configure(); },
         
-        // Theme Management
-        initDarkMode: function() { return ThemeManager.init(); },
         
         // Enhancement
         enableTalentTooltips: function() { return EnhancementManager.enableTalentTooltips(); },
         markupHintLinks: function() { return EnhancementManager.markupHintLinks(); },
         
-        // Mobile Navigation
-        initMobileNavigation: function() { return MobileNavManager.init(); },
+        // Mobile Navigation (events handled in events.js, this exposes global functions)
+        initMobileNavigation: function() { 
+            // Expose mobile navigation functions globally for events.js to use
+            window.toggleMobileNav = MobileNavManager.toggle.bind(MobileNavManager);
+            window.openMobileNav = MobileNavManager.open.bind(MobileNavManager);
+            window.closeMobileNav = MobileNavManager.close.bind(MobileNavManager);
+            window.refreshCurrentNavigation = MobileNavManager.refreshCurrentNavigation.bind(MobileNavManager);
+        },
+        
+        // Dark Mode (theme functionality is handled in events.js, this is compatibility wrapper)
+        initDarkMode: function() {
+            // Dark mode/theme functionality is already handled by EVENTS.initThemeEvents()
+            // This function exists for compatibility with app.js initialization sequence
+            // The actual theme initialization happens in EVENTS.init() -> initThemeEvents()
+            if (typeof EVENTS !== 'undefined' && EVENTS.initThemeEvents) {
+                // Ensure theme events are initialized (though they should already be via EVENTS.init())
+                EVENTS.initThemeEvents();
+            }
+        },
         
         /**
          * Initialize all UI management systems

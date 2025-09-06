@@ -1,3 +1,23 @@
+/**
+ * Items System Module
+ * Handles item data loading, processing, and display functionality.
+ * Manages artifacts, special items, and their associated metadata.
+ * 
+ * Key responsibilities:
+ * - Loading item data from multiple JSON sources (artifacts, special items)
+ * - Processing item relationships and lookup tables
+ * - Managing damage type lookups for weapon information
+ * - Providing item data access for navigation and display
+ * 
+ * Data sources:
+ * - items.artifacts.json - Artifact items with unique properties
+ * - items.special.json - Special items and equipment  
+ * - lookups/damage_types.json - Damage type reference data
+ * 
+ * Note: This module is separate from the talent system and handles ToME's
+ * extensive item database with 494+ items across 47+ base classes.
+ */
+
 // Items system - separate from talents
 var items = {
     data: null,
