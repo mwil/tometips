@@ -233,8 +233,7 @@ var ROUTING = (function() {
                     }
                     
                     // Only regenerate navigation if we're not already showing races navigation  
-                    var currentSidebarContent = $("#side-nav").html();
-                    var isAlreadyShowingRaces = currentSidebarContent && currentSidebarContent.includes('races-navigation');
+                    var isAlreadyShowingRaces = $("#side-nav #races-navigation").length > 0;
                     
                     if (!isAlreadyShowingRaces) {
                         $("#side-nav").html(UI_MANAGEMENT.createMobileNavigation(navRaces(DATA_LOADER.getData())));
@@ -292,8 +291,7 @@ var ROUTING = (function() {
                     }
                     
                     // Only regenerate navigation if we're not already showing races navigation  
-                    var currentSidebarContent = $("#side-nav").html();
-                    var isAlreadyShowingRaces = currentSidebarContent && currentSidebarContent.includes('races-navigation');
+                    var isAlreadyShowingRaces = $("#side-nav #races-navigation").length > 0;
                     
                     if (!isAlreadyShowingRaces) {
                         $("#side-nav").html(UI_MANAGEMENT.createMobileNavigation(navRaces(DATA_LOADER.getData())));
@@ -381,8 +379,7 @@ var ROUTING = (function() {
                     }
                     
                     // Only regenerate navigation if we're not already showing classes navigation
-                    var currentSidebarContent = $("#side-nav").html();
-                    var isAlreadyShowingClasses = currentSidebarContent && currentSidebarContent.includes('classes-navigation');
+                    var isAlreadyShowingClasses = $("#side-nav #classes-navigation").length > 0;
                     
                     if (!isAlreadyShowingClasses) {
                         $("#side-nav").html(UI_MANAGEMENT.createMobileNavigation(navClasses(DATA_LOADER.getData())));
@@ -453,8 +450,7 @@ var ROUTING = (function() {
                     }
                     
                     // Only regenerate navigation if we're not already showing classes navigation
-                    var currentSidebarContent = $("#side-nav").html();
-                    var isAlreadyShowingClasses = currentSidebarContent && currentSidebarContent.includes('classes-navigation');
+                    var isAlreadyShowingClasses = $("#side-nav #classes-navigation").length > 0;
                     
                     if (!isAlreadyShowingClasses) {
                         $("#side-nav").html(UI_MANAGEMENT.createMobileNavigation(navClasses(DATA_LOADER.getData())));
