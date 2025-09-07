@@ -232,8 +232,10 @@ var ROUTING = (function() {
                         fixupRaces(DATA_LOADER.getData());
                     }
                     
-                    // Ensure sidebar navigation is populated
-                    if (!$("#nav-races").length || !$("#races-navigation").length) {
+                    // Only regenerate navigation if we're not already showing races navigation  
+                    var isAlreadyShowingRaces = $("#side-nav #races-navigation").length > 0;
+                    
+                    if (!isAlreadyShowingRaces) {
                         $("#side-nav").html(UI_MANAGEMENT.createMobileNavigation(navRaces(DATA_LOADER.getData())));
                         // Convert Bootstrap attributes for dynamic content - FIX FOR ACCORDION CLICKS
                         if (window.convertBootstrapAttributes) {
@@ -288,8 +290,10 @@ var ROUTING = (function() {
                         fixupRaces(DATA_LOADER.getData());
                     }
                     
-                    // Ensure sidebar navigation is populated
-                    if (!$("#nav-races").length || !$("#races-navigation").length) {
+                    // Only regenerate navigation if we're not already showing races navigation  
+                    var isAlreadyShowingRaces = $("#side-nav #races-navigation").length > 0;
+                    
+                    if (!isAlreadyShowingRaces) {
                         $("#side-nav").html(UI_MANAGEMENT.createMobileNavigation(navRaces(DATA_LOADER.getData())));
                         // Convert Bootstrap attributes for dynamic content - FIX FOR ACCORDION CLICKS
                         if (window.convertBootstrapAttributes) {
@@ -374,8 +378,10 @@ var ROUTING = (function() {
                         fixupClasses(DATA_LOADER.getData());
                     }
                     
-                    // Ensure sidebar navigation is populated
-                    if (!$("#nav-classes").length || !$("#classes-navigation").length) {
+                    // Only regenerate navigation if we're not already showing classes navigation
+                    var isAlreadyShowingClasses = $("#side-nav #classes-navigation").length > 0;
+                    
+                    if (!isAlreadyShowingClasses) {
                         $("#side-nav").html(UI_MANAGEMENT.createMobileNavigation(navClasses(DATA_LOADER.getData())));
                         // Convert Bootstrap attributes for dynamic content - FIX FOR ACCORDION CLICKS
                         if (window.convertBootstrapAttributes) {
@@ -390,14 +396,7 @@ var ROUTING = (function() {
                         document.title = base_title + ' - Class';
                     }
 
-                    // Expand the appropriate class accordion section
-                    setTimeout(function() {
-                        var $classAccordion = $("#nav-" + cls);
-                        if ($classAccordion.length && !$classAccordion.hasClass('show')) {
-                            $classAccordion.collapse('show');
-                        }
-                    }, 100);
-
+                    // FIRST: Load all content before any scrolling attempts
                     if (typeof listClasses === 'function') {
                         $("#content").html(listClasses(DATA_LOADER.getData(), cls));
                     } else {
@@ -413,7 +412,24 @@ var ROUTING = (function() {
                         fillTalentAvailability(DATA_LOADER.getData(), 'class/' + cls);
                     }
 
-                    UTILS.scrollToId();
+                    // THEN: Handle accordion and scrolling after content is fully loaded
+                    // Wait for all images and layout to be completely ready
+                    UTILS.waitForContentReady($("#content"), function() {
+                        var $classAccordion = $("#nav-" + cls);
+                        if ($classAccordion.length && !$classAccordion.hasClass('show')) {
+                            // Wait for accordion to fully expand before calling scrollToId
+                            $classAccordion.one('shown.bs.collapse', function() {
+                                // Content already ready, scroll immediately after accordion animation
+                                UTILS.scrollToId();
+                            });
+                            $classAccordion.collapse('show');
+                        } else {
+                            // Accordion already open, content ready, scroll immediately
+                            UTILS.scrollToId();
+                        }
+                    });
+
+                    // scrollToId() is now handled by accordion event or called immediately above
                     if (typeof updateFinished === 'function') {
                         UI_MANAGEMENT.updateFinished();
                     }
@@ -433,8 +449,10 @@ var ROUTING = (function() {
                         fixupClasses(DATA_LOADER.getData());
                     }
                     
-                    // Ensure sidebar navigation is populated
-                    if (!$("#nav-classes").length || !$("#classes-navigation").length) {
+                    // Only regenerate navigation if we're not already showing classes navigation
+                    var isAlreadyShowingClasses = $("#side-nav #classes-navigation").length > 0;
+                    
+                    if (!isAlreadyShowingClasses) {
                         $("#side-nav").html(UI_MANAGEMENT.createMobileNavigation(navClasses(DATA_LOADER.getData())));
                         // Convert Bootstrap attributes for dynamic content - FIX FOR ACCORDION CLICKS
                         if (window.convertBootstrapAttributes) {
@@ -446,14 +464,7 @@ var ROUTING = (function() {
                     var className = (classData && classData.name) ? classData.name : 'Class';
                     document.title = base_title + ' - ' + className + ' - ' + toTitleCase(subclass);
 
-                    // Expand the appropriate class accordion section
-                    setTimeout(function() {
-                        var $classAccordion = $("#nav-" + cls);
-                        if ($classAccordion.length && !$classAccordion.hasClass('show')) {
-                            $classAccordion.collapse('show');
-                        }
-                    }, 100);
-
+                    // FIRST: Load all content before any scrolling attempts
                     if (typeof listClasses === 'function') {
                         $("#content").html(listClasses(DATA_LOADER.getData(), cls));
                     } else {
@@ -469,7 +480,24 @@ var ROUTING = (function() {
                         fillTalentAvailability(DATA_LOADER.getData(), 'class/' + cls);
                     }
 
-                    UTILS.scrollToId();
+                    // THEN: Handle accordion and scrolling after content is fully loaded
+                    // Wait for all images and layout to be completely ready
+                    UTILS.waitForContentReady($("#content"), function() {
+                        var $classAccordion = $("#nav-" + cls);
+                        if ($classAccordion.length && !$classAccordion.hasClass('show')) {
+                            // Wait for accordion to fully expand before calling scrollToId
+                            $classAccordion.one('shown.bs.collapse', function() {
+                                // Content already ready, scroll immediately after accordion animation
+                                UTILS.scrollToId();
+                            });
+                            $classAccordion.collapse('show');
+                        } else {
+                            // Accordion already open, content ready, scroll immediately
+                            UTILS.scrollToId();
+                        }
+                    });
+
+                    // scrollToId() is now handled by accordion event or called immediately above
                     if (typeof updateFinished === 'function') {
                         UI_MANAGEMENT.updateFinished();
                     }
