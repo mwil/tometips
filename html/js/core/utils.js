@@ -100,7 +100,7 @@ var UTILS = (function() {
                     
                     // If still not found, try with t_ prefix and toHtmlId transformation
                     if (!$target) {
-                        var transformedId = talentId.toLowerCase().replace(/[':\\/]/g, '_');
+                        var transformedId = talentId.toLowerCase().replace(/[':\/]/g, '_');
                         var transformedPrefixedId = parts[0] + '/' + parts[1] + '/' + parts[2] + '/t_' + transformedId;
                         $target = document.getElementById(transformedPrefixedId) ? $(document.getElementById(transformedPrefixedId)) : null;
                     }
@@ -124,7 +124,7 @@ var UTILS = (function() {
                     
                     // If not found, try with toHtmlId transformation
                     if (!$target) {
-                        var transformedId = talentId.toLowerCase().replace(/[':\\/]/g, '_');
+                        var transformedId = talentId.toLowerCase().replace(/[':\/]/g, '_');
                         var transformedTargetId = parts[0] + '/' + parts[1] + '/' + transformedId;
                         $target = document.getElementById(transformedTargetId) ? $(document.getElementById(transformedTargetId)) : null;
                     }
@@ -234,7 +234,7 @@ var UTILS = (function() {
                     $target = document.getElementById(prefixedId) ? $(document.getElementById(prefixedId)) : null;
                     
                     if (!$target) {
-                        var transformedId = talentId.toLowerCase().replace(/[':\\/]/g, '_');
+                        var transformedId = talentId.toLowerCase().replace(/[':\/]/g, '_');
                         var transformedPrefixedId = parts[0] + '/' + parts[1] + '/' + parts[2] + '/t_' + transformedId;
                         $target = document.getElementById(transformedPrefixedId) ? $(document.getElementById(transformedPrefixedId)) : null;
                     }
