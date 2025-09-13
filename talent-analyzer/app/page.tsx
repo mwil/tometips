@@ -119,7 +119,6 @@ const TalentAnalyzer = () => {
     // Special trees that don't use tier system (they use investment-based tiers)
     const noTierTrees = [
       'Technique / Combat training',
-      'Race / Ogre',
       'Race / Doomelf',
       'Race / Halfling',
       'Race / Yeek',
@@ -365,7 +364,6 @@ const TalentAnalyzer = () => {
                 <tr className={darkMode ? 'bg-gray-700' : 'bg-gray-100'}>
                   <th className={`p-2 text-left ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>Skill</th>
                   <th className={`p-2 text-center ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>Tree</th>
-                  <th className={`p-2 text-center ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>Tier</th>
                   <th className={`p-2 text-center ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>Players</th>
                   <th className={`p-2 text-center ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>Invest%</th>
                   <th className={`p-2 text-center ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>0</th>
@@ -411,9 +409,6 @@ const TalentAnalyzer = () => {
                       >
                         {item.tree}
                       </span>
-                    </td>
-                    <td className={`p-2 text-center font-bold text-lg ${darkMode ? 'text-yellow-400' : 'text-yellow-600'}`}>
-                      {item.tier}
                     </td>
                     <td className={`p-2 text-center font-bold ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
                       {item.players}
